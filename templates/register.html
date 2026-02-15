@@ -1,0 +1,204 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssignHub - Create Account</title>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/toast.css' %}">
+    <style>
+        .role-radio:checked + .role-card {
+            border-color: #14b8a6;
+            background-color: #f0fdfa;
+        }
+        .role-radio:checked + .role-card .icon-container {
+            background-color: #14b8a6;
+        }
+        .role-radio:checked + .role-card .icon-svg {
+            color: white !important;
+        }
+        .role-radio:checked + .role-card .label-text {
+            color: #0f766e;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50 flex">
+    
+    <!-- Left Side - Branding (Hidden on mobile) -->
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-12 flex-col justify-between relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-20 left-20 w-72 h-72 bg-teal-500 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div class="relative z-10">
+            <a href="{% url 'home' %}" class="flex items-center gap-3 text-white mb-4 hover:opacity-80 transition-opacity">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span>Back to Home</span>
+            </a>
+        </div>
+
+        <div class="relative z-10">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 bg-gradient-to-br from-teal-500 to-blue-600 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="book-open" class="w-7 h-7 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-white">AssignHub</h1>
+                    <p class="text-slate-400">Lab Assignment System</p>
+                </div>
+            </div>
+            <h2 class="text-4xl font-bold text-white leading-tight mb-6">
+                Step into Your<br />Future Career
+            </h2>
+            <p class="text-slate-400 text-lg leading-relaxed">
+                Join our platform to streamline your academic journey and collaborated with faculty.
+            </p>
+        </div>
+
+        <div class="relative z-10">
+            <p class="text-slate-500 text-sm">
+                © 2025 Dharmsinh Desai University
+            </p>
+        </div>
+    </div>
+
+    <!-- Right Side - Form -->
+    <div class="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div class="w-full max-w-md">
+            <!-- Mobile Logo -->
+            <div class="lg:hidden flex items-center gap-3 mb-8">
+                <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-blue-600 rounded-xl flex items-center justify-center">
+                    <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-2xl font-bold text-slate-800">AssignHub</span>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Create Account</h2>
+                <p class="text-slate-600">Sign up to get started with AssignHub</p>
+            </div>
+
+            {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'accounts:register' %}" class="space-y-5">
+                {% csrf_token %}
+                
+                <!-- Role Selection (Pure HTML/CSS) -->
+                <div class="mb-6">
+                    <label class="text-sm font-medium text-slate-700 mb-3 block">Select Your Role</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="student" class="hidden role-radio" checked>
+                            <div class="role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center">
+                                <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors icon-container">
+                                   <i data-lucide="graduation-cap" class="w-5 h-5 text-slate-500 icon-svg"></i>
+                                </div>
+                                <span class="text-sm font-medium text-slate-600 label-text">Student</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="faculty" class="hidden role-radio">
+                            <div class="role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center">
+                                <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors icon-container">
+                                   <i data-lucide="users" class="w-5 h-5 text-slate-500 icon-svg"></i>
+                                </div>
+                                <span class="text-sm font-medium text-slate-600 label-text">Faculty</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="admin" class="hidden role-radio">
+                            <div class="role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center">
+                                <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors icon-container">
+                                   <i data-lucide="shield" class="w-5 h-5 text-slate-500 icon-svg"></i>
+                                </div>
+                                <span class="text-sm font-medium text-slate-600 label-text">Admin</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium text-slate-700">Full Name</label>
+                    <div class="relative mt-1.5">
+                        <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="text" name="full_name" required placeholder="Enter your full name" class="w-full pl-10 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium text-slate-700">Email Address</label>
+                    <div class="relative mt-1.5">
+                        <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="email" name="email" required placeholder="Enter your email" class="w-full pl-10 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium text-slate-700">Password</label>
+                    <div class="relative mt-1.5">
+                        <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="password" name="password" required placeholder="Enter your password" class="w-full pl-10 pr-10 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium text-slate-700">Confirm Password</label>
+                    <div class="relative mt-1.5">
+                        <i data-lucide="shield-check" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="password" name="confirm_password" required placeholder="Confirm your password" class="w-full pl-10 pr-10 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-5 bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white text-base rounded-xl shadow-lg shadow-teal-500/25 transition-all font-semibold">
+                    Create Account
+                </button>
+            </form>
+
+            <p class="mt-6 text-center text-slate-600">
+                <span>Already have an account?</span>
+                <a href="{% url 'accounts:login' %}" class="text-teal-600 hover:text-teal-700 font-semibold ml-1">
+                    Sign In
+                </a>
+            </p>
+
+            <div class="lg:hidden mt-8 text-center">
+                <a href="{% url 'home' %}" class="text-slate-500 hover:text-slate-700 text-sm">
+                    ← Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Reset form fields when role changes
+        const roleRadios = document.querySelectorAll('.role-radio');
+        const form = document.querySelector('form');
+        
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const inputs = form.querySelectorAll('input:not([name="csrfmiddlewaretoken"]):not([name="role"])');
+                inputs.forEach(input => {
+                    input.value = '';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

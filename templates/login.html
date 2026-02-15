@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssignHub - Login</title>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/toast.css' %}">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50 flex">
+    
+    <!-- Left Side - Branding (Hidden on mobile) -->
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-12 flex-col justify-between relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-20 left-20 w-72 h-72 bg-teal-500 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div class="relative z-10">
+            <a href="{% url 'home' %}" class="flex items-center gap-3 text-white mb-4 hover:opacity-80 transition-opacity">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span>Back to Home</span>
+            </a>
+        </div>
+
+        <div class="relative z-10">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 bg-gradient-to-br from-teal-500 to-blue-600 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="book-open" class="w-7 h-7 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-white">AssignHub</h1>
+                    <p class="text-slate-400">Lab Assignment System</p>
+                </div>
+            </div>
+            <h2 class="text-4xl font-bold text-white leading-tight mb-6">
+                Streamline Your<br />Academic Workflow
+            </h2>
+            <p class="text-slate-400 text-lg leading-relaxed">
+                Access your assignments, submit your work, and track your progress all in one place.
+            </p>
+        </div>
+
+        <div class="relative z-10">
+            <p class="text-slate-500 text-sm">
+                © 2025 Dharmsinh Desai University
+            </p>
+        </div>
+    </div>
+
+    <!-- Right Side - Form -->
+    <div class="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div class="w-full max-w-md">
+            <!-- Mobile Logo -->
+            <div class="lg:hidden flex items-center gap-3 mb-8">
+                <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-blue-600 rounded-xl flex items-center justify-center">
+                    <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-2xl font-bold text-slate-800">AssignHub</span>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Welcome Back</h2>
+                <p class="text-slate-600">Sign in to continue to your dashboard</p>
+            </div>
+
+            {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'accounts:login' %}" class="space-y-5">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="text-sm font-medium text-slate-700">Email Address</label>
+                    <div class="relative mt-1.5">
+                        <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="email" name="email" required placeholder="Enter your email" class="w-full pl-10 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium text-slate-700">Password</label>
+                    <div class="relative mt-1.5">
+                        <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="password" name="password" required placeholder="Enter your password" class="w-full pl-10 pr-10 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end">
+                    <button type="button" class="text-sm text-teal-600 hover:text-teal-700 font-medium">Forgot Password?</button>
+                </div>
+
+                <button type="submit" class="w-full py-5 bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white text-base rounded-xl shadow-lg shadow-teal-500/25 transition-all font-semibold">
+                    Sign In
+                </button>
+            </form>
+
+            <p class="mt-6 text-center text-slate-600">
+                <span>Don't have an account?</span>
+                <a href="{% url 'accounts:register' %}" class="text-teal-600 hover:text-teal-700 font-semibold ml-1">
+                    Sign Up
+                </a>
+            </p>
+
+            <div class="lg:hidden mt-8 text-center">
+                <a href="{% url 'home' %}" class="text-slate-500 hover:text-slate-700 text-sm">
+                    ← Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>
