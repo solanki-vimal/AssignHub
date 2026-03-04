@@ -32,6 +32,12 @@ def register_view(request):
         else:
             user = User.objects.create_user(username=email, email=email, password=password, role=role)
             user.first_name = full_name
+            
+            # Grant admin portal access if role is admin
+            if role == 'admin':
+                user.is_staff = True
+                user.is_superuser = True
+                
             user.save()
             login(request, user)
             return redirect('accounts:dashboard_redirect')
