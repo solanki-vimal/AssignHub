@@ -10,14 +10,21 @@ def login_view(request):
         
         user = authenticate(request, username=email, password=password)
         if user is not None:
-            login(request, user)
-            return redirect('accounts:dashboard_redirect')
+            role = request.POST.get('role')
+            if user.role != role:
+                messages.error(request, f"Please select the correct role. You are registered as a {user.get_role_display()}.")
+            else:
+                login(request, user)
+                return redirect('accounts:dashboard_redirect')
         else:
             messages.error(request, "Invalid credentials")
             
     return render(request, 'login.html')
 
 def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('accounts:dashboard_redirect')
+    
     if request.method == 'POST':
         full_name = request.POST.get('full_name')
         email = request.POST.get('email')
@@ -28,10 +35,14 @@ def register_view(request):
         if password != confirm_password:
             messages.error(request, "Passwords do not match")
         elif User.objects.filter(username=email).exists():
-            messages.error(request, "User already exists")
+            messages.error(request, "A user with this email already exists")
         else:
             user = User.objects.create_user(username=email, email=email, password=password, role=role)
             user.first_name = full_name
+            
+            if role == 'student':
+                user.enrollment_no = request.POST.get('enrollment_no')
+                user.batch = request.POST.get('batch')
             
             # Grant admin portal access if role is admin
             if role == 'admin':
@@ -39,8 +50,8 @@ def register_view(request):
                 user.is_superuser = True
                 
             user.save()
-            login(request, user)
-            return redirect('accounts:dashboard_redirect')
+            messages.success(request, f"Account created successfully! Please sign in as {role.capitalize()}.")
+            return redirect('accounts:login')
             
     return render(request, 'register.html')
 

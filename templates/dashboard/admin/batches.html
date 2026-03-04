@@ -1,0 +1,464 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssignHub - Admin Batches</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/toast.css' %}">
+</head>
+<body class="min-h-screen bg-slate-50">
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white border-r border-slate-100 z-50 transform transition-transform duration-300 -translate-x-full lg:translate-x-0">
+        <div class="flex flex-col h-full">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-teal-500 to-blue-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="book-open" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="text-xl font-bold text-slate-800">AssignHub</span>
+                </div>
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 hover:bg-slate-100 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
+                </button>
+            </div>
+            <div class="p-4 mx-4 mt-4 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+                        {{ user.first_name|first|default:user.username|first|upper }}
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-800">{{ user.first_name|default:user.username }}</p>
+                        <p class="text-xs text-slate-500">Administrator</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 p-4 overflow-y-auto">
+                <ul class="space-y-1">
+                    <li>
+                        <a href="{% url 'dashboard:admin_dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
+                            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                            <span class="font-medium">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                            <span class="font-medium">Users</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'dashboard:admin_courses' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
+                            <i data-lucide="book-open" class="w-5 h-5"></i>
+                            <span class="font-medium">Courses</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'dashboard:admin_batches' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-md shadow-teal-500/20">
+                            <i data-lucide="shield" class="w-5 h-5"></i>
+                            <span class="font-medium">Batches</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
+                            <i data-lucide="activity" class="w-5 h-5"></i>
+                            <span class="font-medium">Activity Logs</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
+                            <i data-lucide="settings" class="w-5 h-5"></i>
+                            <span class="font-medium">Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-4 border-t border-slate-100">
+                <a href="{% url 'accounts:logout' %}" class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span class="font-medium">Logout</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="lg:ml-72">
+        <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-4">
+            <div class="flex items-center justify-between w-full">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="lg:hidden p-2 hover:bg-slate-100 rounded-lg"><i data-lucide="menu" class="w-5 h-5 text-slate-600"></i></button>
+                    <h1 class="text-xl font-bold text-slate-800">Batch Management</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                     <a href="#" class="relative p-2 hover:bg-slate-100 rounded-lg">
+                        <i data-lucide="bell" class="w-5 h-5 text-slate-600"></i>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="p-6">
+            {% if messages %}
+            <div class="mb-6 space-y-3" id="toast-container">
+                {% for message in messages %}
+                <div class="p-4 rounded-lg flex items-start justify-between gap-3 transition-opacity duration-300 {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}" id="toast-{{ forloop.counter }}">
+                    <div class="flex items-start gap-3">
+                        {% if message.tags == 'error' %}
+                            <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                        {% else %}
+                            <i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                        {% endif %}
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" onclick="dismissToast('toast-{{ forloop.counter }}')" class="flex-shrink-0 p-1 rounded-md inline-flex items-center justify-center text-slate-400 hover:text-slate-500 hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                        <span class="sr-only">Close</span>
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-1">Batch Management</h2>
+                    <p class="text-slate-600">Organize students into batches and groups</p>
+                </div>
+                <button onclick="toggleModal('add-batch-modal')" class="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-indigo-700 shadow-md transition-all">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Create Batch
+                </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6">
+                <div class="flex flex-wrap gap-4">
+                    <div class="relative flex-1 min-w-[200px]">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                        <input type="text" id="batch-search" placeholder="Search batches..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <select id="year-filter" class="w-40 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                        <option value="all">All Years</option>
+                        <option value="2024-25">2024-25</option>
+                        <option value="2025-26">2025-26</option>
+                    </select>
+                    <select id="semester-filter" class="w-40 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                        <option value="all">All Semesters</option>
+                        {% for sem in semesters %}
+                        <option value="{{ sem }}">Sem {{ sem }}</option>
+                        {% endfor %}
+                    </select>
+                    <a href="?show_archived={% if show_archived %}false{% else %}true{% endif %}" class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-2">
+                        <i data-lucide="archive" class="w-4 h-4"></i>
+                        {% if show_archived %}Hide Archived{% else %}Show Archived{% endif %}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Batches Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
+                {% for batch in batches %}
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg transition-all p-6 relative batch-card" data-year="{{ batch.academic_year }}" data-semester="{{ batch.semester|default:'' }}" data-search-terms="{{ batch.name|lower }} {{ batch.academic_year|lower }} {{ batch.coordinator.first_name|lower|default:'' }} {{ batch.coordinator.last_name|lower|default:'' }}">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                                {{ batch.name|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-lg">{{ batch.name }}</h3>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <a href="{% url 'dashboard:admin_manage_batch_students' batch.id %}" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors" title="Manage Students">
+                                <i data-lucide="users" class="w-4 h-4"></i>
+                            </a>
+                            <button onclick="openEditModal('{{ batch.id }}', '{{ batch.name|escapejs }}', '{{ batch.academic_year|escapejs }}', '{{ batch.is_active }}', '{% if batch.semester %}{{ batch.semester }}{% endif %}', '{% if batch.coordinator %}{{ batch.coordinator.id }}{% endif %}');" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors" title="Edit Batch">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <form method="POST" action="{% url 'dashboard:admin_batch_archive' batch.id %}" class="inline-block m-0 p-0" onsubmit="return confirm('{% if show_archived %}Are you sure you want to unarchive this batch?{% else %}Are you sure you want to archive this batch?{% endif %}');">
+                                {% csrf_token %}
+                                {% if show_archived %}
+                                <input type="hidden" name="action" value="unarchive">
+                                <button type="submit" class="p-1.5 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors" title="Unarchive Batch">
+                                    <i data-lucide="archive-restore" class="w-4 h-4"></i>
+                                </button>
+                                {% else %}
+                                <input type="hidden" name="action" value="archive">
+                                <button type="submit" class="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors" title="Archive Batch">
+                                    <i data-lucide="archive" class="w-4 h-4"></i>
+                                </button>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Year</span>
+                            <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-semibold">{{ batch.academic_year }}</span>
+                        </div>
+                        {% if batch.semester %}
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Semester</span>
+                            <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">Sem {{ batch.semester }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Students</span>
+                            <span class="font-semibold text-slate-900">{{ batch.students.count }}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Courses</span>
+                            <span class="font-semibold text-slate-900">4</span> <!-- Prototype static val -->
+                        </div>
+                        <div class="pt-3 border-t border-slate-100">
+                            <p class="text-xs text-slate-400 mb-1">Coordinator</p>
+                            {% if batch.coordinator %}
+                            <p class="text-sm font-medium text-slate-900">{{ batch.coordinator.first_name|default:batch.coordinator.username }}</p>
+                            {% else %}
+                            <p class="text-sm font-medium text-slate-400 italic">Not Assigned</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full p-8 text-center bg-white rounded-2xl border border-slate-100">
+                    <p class="text-slate-500">No batches available.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Batch Modal -->
+    <div id="add-batch-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
+            <h3 class="text-lg font-bold text-slate-900 mb-4">Create New Batch</h3>
+            <form method="POST" action="{% url 'dashboard:admin_batches' %}" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Batch Name</label>
+                    <input type="text" name="name" required placeholder="e.g. B7" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
+                        <input type="date" name="start_date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">End Date</label>
+                        <input type="date" name="end_date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                    <select name="status" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Semester <span class="text-slate-400 text-xs">(optional)</span></label>
+                        <select name="semester" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                            <option value="">--</option>
+                            {% for sem in semesters %}
+                            <option value="{{ sem }}">Sem {{ sem }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Coordinator <span class="text-slate-400 text-xs">(optional)</span></label>
+                        <select name="coordinator_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                            <option value="">-- None --</option>
+                            {% for faculty in faculty_list %}
+                            <option value="{{ faculty.id }}">{{ faculty.first_name|default:faculty.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="toggleModal('add-batch-modal')" class="flex-1 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium">Cancel</button>
+                    <button type="submit" class="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">Create Batch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Batch Modal -->
+    <div id="edit-batch-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="edit-modal-content">
+            <h3 class="text-lg font-bold text-slate-900 mb-4">Edit Batch</h3>
+            <form id="edit-batch-form" method="POST" action="" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Batch Name</label>
+                    <input type="text" id="edit-batch-name" name="name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
+                        <input type="date" id="edit-batch-start" name="start_date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">End Date</label>
+                        <input type="date" id="edit-batch-end" name="end_date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                    <select id="edit-batch-status" name="status" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Semester <span class="text-slate-400 text-xs">(optional)</span></label>
+                        <select id="edit-batch-semester" name="semester" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                            <option value="">--</option>
+                            {% for sem in semesters %}
+                            <option value="{{ sem }}">Sem {{ sem }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Coordinator <span class="text-slate-400 text-xs">(optional)</span></label>
+                        <select id="edit-batch-coordinator" name="coordinator_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                            <option value="">-- None --</option>
+                            {% for faculty in faculty_list %}
+                            <option value="{{ faculty.id }}">{{ faculty.first_name|default:faculty.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="toggleModal('edit-batch-modal')" class="flex-1 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium">Cancel</button>
+                    <button type="submit" class="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+        
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if(menu.id !== id) menu.classList.add('hidden');
+            });
+            dropdown.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function(event) {
+            const dropdownContainer = event.target.closest('.dropdown-container');
+            
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                // If we clicked outside any dropdown container, or if we clicked inside a DIFFERENT dropdown container
+                if (!dropdownContainer || !dropdownContainer.contains(menu)) {
+                    menu.classList.add('hidden');
+                }
+            });
+        });
+
+        function dismissToast(toastId) {
+            const toast = document.getElementById(toastId);
+            if (toast) {
+                toast.classList.add('opacity-0');
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                    toast.remove();
+                }, 300);
+            }
+        }
+
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = modal.querySelector('div.bg-white');
+            
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function openEditModal(id, name, year, isActive, semester, coordinatorId) {
+            document.getElementById('edit-batch-form').action = `/dashboard/admin/batches/${id}/edit/`;
+            document.getElementById('edit-batch-name').value = name;
+            
+            // Format year back to dummy dates for the date pickers
+            if(year && year.includes('-')) {
+                const parts = year.split('-');
+                let sYear = parts[0];
+                let eYear = parts[1];
+                if(eYear.length === 2) eYear = "20" + eYear;
+                document.getElementById('edit-batch-start').value = sYear + "-06-01";
+                document.getElementById('edit-batch-end').value = eYear + "-05-31";
+            }
+            
+            document.getElementById('edit-batch-status').value = isActive === 'True' ? 'active' : 'inactive';
+            const semesterSelect = document.getElementById('edit-batch-semester');
+            if (semesterSelect) semesterSelect.value = semester || '';
+            const coordinatorSelect = document.getElementById('edit-batch-coordinator');
+            if (coordinatorSelect) coordinatorSelect.value = coordinatorId || '';
+            toggleModal('edit-batch-modal');
+        }
+
+        // Filtering logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('batch-search');
+            const yearFilter = document.getElementById('year-filter');
+            const semesterFilter = document.getElementById('semester-filter');
+            const cards = document.querySelectorAll('.batch-card');
+
+            function filterBatches() {
+                const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+                const year = yearFilter ? yearFilter.value : 'all';
+                const semester = semesterFilter ? semesterFilter.value : 'all';
+
+                cards.forEach(card => {
+                    const cardSearchTerms = card.dataset.searchTerms;
+                    const cardYear = card.dataset.year;
+                    const cardSemester = card.dataset.semester;
+
+                    const matchesSearch = cardSearchTerms.includes(searchTerm);
+                    const matchesYear = year === 'all' || cardYear === year;
+                    const matchesSemester = semester === 'all' || cardSemester === semester;
+
+                    if (matchesSearch && matchesYear && matchesSemester) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            if (searchInput) searchInput.addEventListener('input', filterBatches);
+            if (yearFilter) yearFilter.addEventListener('change', filterBatches);
+            if (semesterFilter) semesterFilter.addEventListener('change', filterBatches);
+        });
+    </script>
+</body>
+</html>
