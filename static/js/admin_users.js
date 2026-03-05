@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function openEditUserModal(id, firstName, lastName, email, role, deptOrBatch) {
+function openEditUserModal(id, firstName, lastName, email, role, deptOrBatch, enrollmentNo, facultyId) {
     document.getElementById('edit-user-id').value = id;
     document.getElementById('edit-user-fullname').value = (firstName + ' ' + lastName).trim();
     document.getElementById('edit-user-email').value = email;
@@ -64,6 +64,12 @@ function openEditUserModal(id, firstName, lastName, email, role, deptOrBatch) {
     document.getElementById('edit-user-batch').value = '';
     document.getElementById('edit-user-dept').value = '';
 
+    // Safety check if elements exist
+    const enrollInput = document.getElementById('edit-user-enrollment');
+    const facInput = document.getElementById('edit-user-faculty-id');
+    if (enrollInput) enrollInput.value = '';
+    if (facInput) facInput.value = '';
+
     if (deptOrBatch && deptOrBatch !== 'None' && deptOrBatch !== 'System' && deptOrBatch !== 'N/A') {
         if (role === 'student') {
             document.getElementById('edit-user-batch').value = deptOrBatch;
@@ -72,8 +78,24 @@ function openEditUserModal(id, firstName, lastName, email, role, deptOrBatch) {
         }
     }
 
+    if (role === 'student' && enrollInput) {
+        enrollInput.value = enrollmentNo || '';
+    } else if (role === 'faculty' && facInput) {
+        facInput.value = facultyId || '';
+    }
+
     // Trigger the field toggle based on the new role
     toggleRoleFields('edit-user-role', 'edit-batch-group', 'edit-dept-group', 'edit-user-batch', 'edit-user-dept');
 
     toggleModal('edit-user-modal');
+}
+
+function openResetPasswordModal(id, email) {
+    document.getElementById('reset-pwd-user-id').value = id;
+    document.getElementById('reset-pwd-email').textContent = email;
+    // reset input
+    const input = document.querySelector('input[name="new_password"]');
+    if (input) input.value = '';
+
+    toggleModal('reset-password-modal');
 }

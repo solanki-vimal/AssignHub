@@ -36,17 +36,22 @@
             </div>
 
             <!-- User Info -->
-            <div class="p-4 mx-4 mt-4 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
-                        {{ user.first_name|first|default:user.username|first|upper }}
-                    </div>
-                    <div>
-                        <p class="font-semibold text-slate-800">{{ user.first_name|default:user.username }}</p>
-                        <p class="text-xs text-slate-500">Administrator</p>
+            <!-- Profile Link -->
+            <a href="{% url 'dashboard:profile' %}" class="block">
+                <div class="p-4 mx-4 mt-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold uppercase">
+                            {{ request.user.first_name|default:request.user.email|make_list|first }}
+                        </div>
+                        <div class="overflow-hidden">
+                            <p class="font-semibold text-slate-800 truncate" title="{{ request.user.get_full_name|default:request.user.email }}">
+                                {{ request.user.get_full_name|default:request.user.email }}
+                            </p>
+                            <p class="text-xs text-slate-500 capitalize">{{ request.user.get_role_display }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </a>
 
             <!-- Navigation -->
             <nav class="flex-1 p-4 overflow-y-auto">
@@ -82,7 +87,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
+                        <a href="{% url 'dashboard:admin_settings' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if 'admin_setting' in request.resolver_match.url_name %}bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-md shadow-teal-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
                             <i data-lucide="settings" class="w-5 h-5"></i>
                             <span class="font-medium">Settings</span>
                         </a>

@@ -19,8 +19,11 @@ urlpatterns = [
     path('admin/batches/<int:pk>/students/', views.admin_manage_batch_students, name='admin_manage_batch_students'),
     path('admin/batches/<int:pk>/courses/', views.admin_manage_batch_courses, name='admin_manage_batch_courses'),
     path('admin/logs/', views.admin_logs, name='admin_logs'),
+    path('admin/logs/export/', views.admin_logs_export, name='admin_logs_export'),
+    path('admin/settings/', views.admin_settings, name='admin_settings'),
     
     path('faculty/', views.faculty_dashboard, name='faculty_dashboard'),
     path('student/', views.student_dashboard, name='student_dashboard'),
+    path('profile/', views.profile_view, name='profile'),
 ]
 

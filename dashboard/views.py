@@ -1,3 +1,5 @@
+import csv
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -7,6 +9,7 @@ from dashboard.models import ActivityLog
 import re
 from datetime import datetime
 from django.db.models import Count, Q
+from dashboard.models import ActivityLog, SystemSettings
 
 @login_required
 def admin_dashboard(request):
@@ -14,10 +17,29 @@ def admin_dashboard(request):
         return redirect('home')
 
     User = get_user_model()
+    
+    total_users = User.objects.filter(is_active=True).count()
+    student_count = User.objects.filter(is_active=True, role='student').count()
+    faculty_count = User.objects.filter(is_active=True, role='faculty').count()
+    admin_count = User.objects.filter(is_active=True, role='admin').count()
+    
+    student_percent = round((student_count / total_users * 100)) if total_users > 0 else 0
+    faculty_percent = round((faculty_count / total_users * 100)) if total_users > 0 else 0
+    admin_percent = round((admin_count / total_users * 100)) if total_users > 0 else 0
+    
+    recent_logs = ActivityLog.objects.select_related('user').order_by('-timestamp')[:5]
+
     context = {
-        'total_users': User.objects.filter(is_active=True).count(),
+        'total_users': total_users,
+        'student_count': student_count,
+        'faculty_count': faculty_count,
+        'admin_count': admin_count,
+        'student_percent': student_percent,
+        'faculty_percent': faculty_percent,
+        'admin_percent': admin_percent,
         'active_courses': Course.objects.filter(is_archived=False).count(),
         'total_batches': Batch.objects.filter(is_archived=False).count(),
+        'recent_logs': recent_logs,
     }
     return render(request, 'dashboard/admin_dashboard.html', context)
 
@@ -460,25 +482,39 @@ def admin_users(request):
                 first_name, *last_name_parts = full_name.split(' ', 1)
                 last_name = last_name_parts[0] if last_name_parts else ''
                 
+                password = request.POST.get('password', 'AssignHub@123')
+                
                 new_user = User(
                     email=email,
-                    username=email.split('@')[0],
+                    username=email, # Use email as username pattern to match registration
                     first_name=first_name,
                     last_name=last_name,
                     role=role
                 )
-                new_user.set_password('AssignHub@123') # Default password
+                
+                if role == 'admin':
+                    new_user.is_staff = True
+                    new_user.is_superuser = True
+                    
+                new_user.set_password(password)
                 
                 new_user.save()
                 
-                if role == 'student' and batch_name:
-                    batch_obj = Batch.objects.filter(name__iexact=batch_name).first()
-                    if batch_obj:
-                        new_user.batch = batch_obj.name
-                        new_user.save()
-                        batch_obj.students.add(new_user)
-                elif role == 'faculty' and department:
-                    new_user.department = department
+                new_user.save()
+                
+                if role == 'student':
+                    new_user.enrollment_no = request.POST.get('enrollment_no', '').strip()
+                    if batch_name:
+                        batch_obj = Batch.objects.filter(name__iexact=batch_name).first()
+                        if batch_obj:
+                            new_user.batch = batch_obj.name
+                            new_user.save()
+                            batch_obj.students.add(new_user)
+                    new_user.save()
+                elif role == 'faculty':
+                    new_user.faculty_id = request.POST.get('faculty_id', '').strip()
+                    if department:
+                        new_user.department = department
                     new_user.save()
                 messages.success(request, f"User {email} created successfully.")
                 ActivityLog.objects.create(
@@ -504,6 +540,9 @@ def admin_users(request):
             
             if role == 'faculty':
                 target_user.department = department
+                target_user.faculty_id = request.POST.get('faculty_id', '').strip()
+            elif role == 'student':
+                target_user.enrollment_no = request.POST.get('enrollment_no', '').strip()
                 
             target_user.save()
             
@@ -537,6 +576,24 @@ def admin_users(request):
                     action_name='User Deleted',
                     details=f'Permanently deleted user: {user_email}'
                 )
+                
+        elif action == 'reset_password':
+            user_id = request.POST.get('user_id')
+            new_password = request.POST.get('new_password')
+            target_user = get_object_or_404(User, pk=user_id)
+            
+            if new_password:
+                target_user.set_password(new_password)
+                target_user.save()
+                messages.success(request, f"Password for {target_user.email} has been reset successfully.")
+                ActivityLog.objects.create(
+                    user=request.user,
+                    action='update',
+                    action_name='Password Reset',
+                    details=f'Password manually reset for: {target_user.email}'
+                )
+            else:
+                messages.error(request, "New password cannot be empty.")
                 
         return redirect('dashboard:admin_users')
 
@@ -576,3 +633,133 @@ def faculty_dashboard(request):
 @login_required
 def student_dashboard(request):
     return render(request, 'dashboard/student_dashboard.html')
+
+@login_required
+def admin_settings(request):
+    if request.user.role != 'admin':
+        return redirect('home')
+        
+    settings = SystemSettings.load()
+    
+    if request.method == 'POST':
+        tab = request.POST.get('tab', 'general')
+        
+        if tab == 'general':
+            settings.institution_name = request.POST.get('institution_name', settings.institution_name)
+            settings.system_email = request.POST.get('system_email', settings.system_email)
+            settings.current_academic_year = request.POST.get('current_academic_year', settings.current_academic_year)
+            settings.current_semester = request.POST.get('current_semester', settings.current_semester)
+            settings.maintenance_mode = request.POST.get('maintenance_mode') == 'on'
+            
+        elif tab == 'submissions':
+            settings.max_file_size_mb = int(request.POST.get('max_file_size_mb', settings.max_file_size_mb))
+            settings.allowed_formats = request.POST.get('allowed_formats', settings.allowed_formats)
+            settings.allow_late_submissions = request.POST.get('allow_late_submissions') == 'on'
+            
+        elif tab == 'notifications':
+            settings.email_notifications = request.POST.get('email_notifications') == 'on'
+            
+        elif tab == 'security':
+            settings.session_timeout_mins = int(request.POST.get('session_timeout_mins', settings.session_timeout_mins))
+            settings.max_login_attempts = int(request.POST.get('max_login_attempts', settings.max_login_attempts))
+            settings.require_2fa = request.POST.get('require_2fa') == 'on'
+            
+        # The 'archives' tab logic is intentionally bypassed as per MVP design
+            
+        settings.save()
+        messages.success(request, f"{tab.capitalize()} settings updated successfully.")
+        
+        ActivityLog.objects.create(
+            user=request.user,
+            action='update',
+            action_name='Settings Updated',
+            details=f'Updated system {tab} settings'
+        )
+        return redirect('dashboard:admin_settings')
+
+    context = {
+        'settings': settings,
+    }
+    return render(request, 'dashboard/admin/settings.html', context)
+
+@login_required
+def admin_logs_export(request):
+    if request.user.role != 'admin':
+        return redirect('home')
+        
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="activity_logs.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Timestamp', 'Action Name', 'Action Type', 'User Email', 'Role', 'Details'])
+    
+    logs = ActivityLog.objects.select_related('user').order_by('-timestamp')
+    for log in logs:
+        user_email = log.user.email if log.user else 'System'
+        user_role = log.user.get_role_display() if log.user else 'System'
+        timestamp = log.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        writer.writerow([timestamp, log.action_name, log.action, user_email, user_role, log.details])
+        
+    return response
+
+@login_required
+def profile_view(request):
+    user = request.user
+    
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        contact_no = request.POST.get('contact_no', '').strip()
+        
+        user.first_name = first_name
+        user.last_name = last_name
+        user.contact_no = contact_no
+        
+        if user.role == 'student':
+            user.enrollment_no = request.POST.get('enrollment_no', '').strip()
+            batch_name = request.POST.get('batch', '').strip()
+            if batch_name:
+                batch_obj = Batch.objects.filter(name__iexact=batch_name).first()
+                if batch_obj:
+                    user.batch = batch_obj.name
+                    batch_obj.students.add(user)
+                    
+        elif user.role == 'faculty':
+            user.faculty_id = request.POST.get('faculty_id', '').strip()
+            user.department = request.POST.get('department', '').strip()
+            
+        user.save()
+        
+        # Handle password change
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        if current_password and new_password and confirm_password:
+            if new_password != confirm_password:
+                messages.error(request, "New passwords do not match.")
+            elif not user.check_password(current_password):
+                messages.error(request, "Current password is incorrect.")
+            else:
+                user.set_password(new_password)
+                user.save()
+                update_session_auth_hash(request, user)  # Keep user logged in
+                messages.success(request, "Password updated successfully.")
+                
+        messages.success(request, "Profile updated successfully.")
+        return redirect('dashboard:profile')
+        
+    DEPARTMENTS = [
+        ('CE', 'Computer Engineering'),
+        ('IT', 'Information Technology'),
+        ('EC', 'Electronics Communication'),
+        ('ME', 'Mechanical Engineering'),
+        ('CL', 'Civil Engineering')
+    ]
+    batches = Batch.objects.filter(is_archived=False).order_by('name')
+    
+    context = {
+        'departments': DEPARTMENTS,
+        'batches': batches,
+    }
+    return render(request, 'dashboard/profile.html', context)

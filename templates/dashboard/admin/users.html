@@ -98,7 +98,9 @@
                                             data-email="{{ user_obj.email|escapejs }}"
                                             data-role="{{ user_obj.role }}"
                                             data-dept="{% if user_obj.role == 'student' and user_obj.batch %}{{ user_obj.batch|escapejs }}{% elif user_obj.role == 'faculty' %}{{ user_obj.department|default:''|escapejs }}{% endif %}"
-                                            onclick="openEditUserModal(this.dataset.id, this.dataset.fname, this.dataset.lname, this.dataset.email, this.dataset.role, this.dataset.dept);" 
+                                            data-enroll="{{ user_obj.enrollment_no|default:''|escapejs }}"
+                                            data-facid="{{ user_obj.faculty_id|default:''|escapejs }}"
+                                            onclick="openEditUserModal(this.dataset.id, this.dataset.fname, this.dataset.lname, this.dataset.email, this.dataset.role, this.dataset.dept, this.dataset.enroll, this.dataset.facid);" 
                                             class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors" 
                                             title="Edit details">
                                             <i data-lucide="edit-2" class="w-4 h-4"></i>
@@ -119,6 +121,12 @@
                                             </button>
                                             {% endif %}
                                         </form>
+                                        <button 
+                                            onclick="openResetPasswordModal('{{ user_obj.id }}', '{{ user_obj.email|escapejs }}');" 
+                                            class="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors" 
+                                            title="Reset Password">
+                                            <i data-lucide="key" class="w-4 h-4"></i>
+                                        </button>
                                         <form method="POST" action="{% url 'dashboard:admin_users' %}" class="inline-block m-0 p-0" onsubmit="return confirm('Are you sure you want to permanently delete {{ user_obj.username }}? This action cannot be undone.');">
                                             {% csrf_token %}
                                             <input type="hidden" name="user_id" value="{{ user_obj.id }}">
@@ -162,6 +170,10 @@
                     <input type="email" name="email" placeholder="user@ddu.ac.in" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                    <input type="text" name="password" placeholder="AssignHub@123 (Default)" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Role</label>
                     <select name="role" id="add-user-role" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
                         <option value="student" selected>Student</option>
@@ -169,25 +181,37 @@
                         <option value="admin">Administrator</option>
                     </select>
                 </div>
-                <div id="add-batch-group">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Batch</label>
-                    <select name="batch" id="add-user-batch" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
-                        <option value="">-- Select Batch --</option>
-                        {% for batch in batches %}
-                        <option value="{{ batch.name }}">{{ batch.name }} ({{ batch.academic_year }})</option>
-                        {% endfor %}
-                    </select>
-                    <p class="text-xs text-slate-500 mt-1">Assign student to a specific batch.</p>
+                <div id="add-batch-group" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Enrollment Number</label>
+                        <input type="text" name="enrollment_no" id="add-user-enrollment" placeholder="e.g. 21CE000" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Batch</label>
+                        <select name="batch" id="add-user-batch" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
+                            <option value="">-- Select Batch --</option>
+                            {% for batch in batches %}
+                            <option value="{{ batch.name }}">{{ batch.name }} ({{ batch.academic_year }})</option>
+                            {% endfor %}
+                        </select>
+                        <p class="text-xs text-slate-500 mt-1">Assign student to a specific batch.</p>
+                    </div>
                 </div>
-                <div id="add-dept-group" style="display: none;">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Department</label>
-                    <select name="department" id="add-user-dept" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
-                        <option value="">-- Select Department --</option>
-                        {% for dept_code, dept_name in departments %}
-                        <option value="{{ dept_code }}">{{ dept_name }}</option>
-                        {% endfor %}
-                    </select>
-                    <p class="text-xs text-slate-500 mt-1">Assign faculty to a department.</p>
+                <div id="add-dept-group" class="space-y-4" style="display: none;">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Faculty ID</label>
+                        <input type="text" name="faculty_id" id="add-user-faculty-id" placeholder="e.g. FAC001" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Department</label>
+                        <select name="department" id="add-user-dept" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
+                            <option value="">-- Select Department --</option>
+                            {% for dept_code, dept_name in departments %}
+                            <option value="{{ dept_code }}">{{ dept_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="text-xs text-slate-500 mt-1">Assign faculty to a department.</p>
+                    </div>
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="toggleModal('add-user-modal')" class="flex-1 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium">Cancel</button>
@@ -224,29 +248,64 @@
                         <option value="admin">Administrator</option>
                     </select>
                 </div>
-                <div id="edit-batch-group">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Batch</label>
-                    <select name="batch" id="edit-user-batch" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
-                        <option value="">-- Select Batch --</option>
-                        {% for batch in batches %}
-                        <option value="{{ batch.name }}">{{ batch.name }} ({{ batch.academic_year }})</option>
-                        {% endfor %}
-                    </select>
-                    <p class="text-xs text-slate-500 mt-1">Assign student to a specific batch.</p>
+                <div id="edit-batch-group" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Enrollment Number</label>
+                        <input type="text" name="enrollment_no" id="edit-user-enrollment" placeholder="e.g. 21CE000" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Batch</label>
+                        <select name="batch" id="edit-user-batch" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
+                            <option value="">-- Select Batch --</option>
+                            {% for batch in batches %}
+                            <option value="{{ batch.name }}">{{ batch.name }} ({{ batch.academic_year }})</option>
+                            {% endfor %}
+                        </select>
+                        <p class="text-xs text-slate-500 mt-1">Assign student to a specific batch.</p>
+                    </div>
                 </div>
-                <div id="edit-dept-group" style="display: none;">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Department</label>
-                    <select name="department" id="edit-user-dept" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
-                        <option value="">-- Select Department --</option>
-                        {% for dept_code, dept_name in departments %}
-                        <option value="{{ dept_code }}">{{ dept_name }}</option>
-                        {% endfor %}
-                    </select>
-                    <p class="text-xs text-slate-500 mt-1">Assign faculty to a department.</p>
+                <div id="edit-dept-group" class="space-y-4" style="display: none;">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Faculty ID</label>
+                        <input type="text" name="faculty_id" id="edit-user-faculty-id" placeholder="e.g. FAC001" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Department</label>
+                        <select name="department" id="edit-user-dept" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
+                            <option value="">-- Select Department --</option>
+                            {% for dept_code, dept_name in departments %}
+                            <option value="{{ dept_code }}">{{ dept_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="text-xs text-slate-500 mt-1">Assign faculty to a department.</p>
+                    </div>
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="toggleModal('edit-user-modal')" class="flex-1 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium">Cancel</button>
                     <button type="submit" class="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div id="reset-password-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="reset-password-content">
+        <h3 class="text-lg font-bold text-slate-900 mb-4">Reset Password</h3>
+        <form method="POST" action="{% url 'dashboard:admin_users' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reset_password">
+            <input type="hidden" name="user_id" id="reset-pwd-user-id">
+            <div class="space-y-4">
+                <p class="text-sm text-slate-600">Resetting password for: <span id="reset-pwd-email" class="font-semibold text-slate-900"></span></p>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">New Password</label>
+                    <input type="text" name="new_password" placeholder="AssignHub@123" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="toggleModal('reset-password-modal')" class="flex-1 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium">Cancel</button>
+                    <button type="submit" class="flex-1 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium">Reset Password</button>
                 </div>
             </div>
         </form>
