@@ -1,198 +1,78 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssignHub - Admin Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'css/toast.css' %}">
-</head>
-<body class="min-h-screen bg-slate-50">
+{% extends 'base_admin.html' %}
 
-    <!-- Mobile Overlay -->
-    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+{% block title %}Dashboard{% endblock %}
 
-    <!-- Sidebar -->
-    <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white border-r border-slate-100 z-50 transform transition-transform duration-300 -translate-x-full lg:translate-x-0">
-        <div class="flex flex-col h-full">
-            <!-- Header -->
-            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-teal-500 to-blue-600 rounded-xl flex items-center justify-center">
-                        <i data-lucide="book-open" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <span class="text-xl font-bold text-slate-800">AssignHub</span>
-                </div>
-                <button onclick="toggleSidebar()" class="lg:hidden p-2 hover:bg-slate-100 rounded-lg">
-                    <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
-                </button>
-            </div>
+{% block header_title %}Admin Dashboard{% endblock %}
 
-            <!-- User Info -->
-            <div class="p-4 mx-4 mt-4 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
-                        {{ user.first_name|first|default:user.username|first|upper }}
-                    </div>
-                    <div>
-                        <p class="font-semibold text-slate-800">{{ user.first_name|default:user.username }}</p>
-                        <p class="text-xs text-slate-500">Administrator</p>
-                    </div>
-                </div>
-            </div>
+{% block content %}
+<!-- Welcome Section -->
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-1">
+            System Overview 🛡️
+        </h2>
+        <p class="text-slate-600">Monitor and manage the AssignHub platform</p>
+    </div>
+</div>
 
-            <!-- Navigation -->
-            <nav class="flex-1 p-4 overflow-y-auto">
-                <ul class="space-y-1">
-                    <li>
-                        <a href="{% url 'dashboard:admin_dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-md shadow-teal-500/20">
-                            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                            <span class="font-medium">Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
-                            <i data-lucide="users" class="w-5 h-5"></i>
-                            <span class="font-medium">Users</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'dashboard:admin_courses' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
-                            <i data-lucide="book-open" class="w-5 h-5"></i>
-                            <span class="font-medium">Courses</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'dashboard:admin_batches' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
-                            <i data-lucide="shield" class="w-5 h-5"></i>
-                            <span class="font-medium">Batches</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
-                            <i data-lucide="activity" class="w-5 h-5"></i>
-                            <span class="font-medium">Activity Logs</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
-                            <i data-lucide="settings" class="w-5 h-5"></i>
-                            <span class="font-medium">Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            <!-- Logout -->
-            <div class="p-4 border-t border-slate-100">
-                <a href="{% url 'accounts:logout' %}" class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all">
-                    <i data-lucide="log-out" class="w-5 h-5"></i>
-                    <span class="font-medium">Logout</span>
-                </a>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Stat 1 -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
             </div>
         </div>
-    </aside>
-
-    <!-- Main Content -->
-    <div class="lg:ml-72">
-        <!-- TopBar -->
-        <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <button onclick="toggleSidebar()" class="lg:hidden p-2 hover:bg-slate-100 rounded-lg">
-                        <i data-lucide="menu" class="w-5 h-5 text-slate-600"></i>
-                    </button>
-                    <h1 class="text-xl font-bold text-slate-800">Admin Dashboard</h1>
-                </div>
-            </div>
-        </header>
-
-        <main class="p-6">
-            <!-- Welcome Section -->
-            <div class="mb-8 flex items-center justify-between">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-900 mb-1">
-                        System Overview 🛡️
-                    </h2>
-                    <p class="text-slate-600">Monitor and manage the AssignHub platform</p>
-                </div>
-            </div>
-
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <!-- Stat 1 -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                            <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-3xl font-bold text-slate-900 mb-1">{{ total_users }}</h4>
-                        <p class="text-sm font-medium text-slate-500">Total Users</p>
-                    </div>
-                </div>
-                <!-- Stat 2 -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                            <i data-lucide="book-open" class="w-6 h-6 text-green-600"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-3xl font-bold text-slate-900 mb-1">{{ active_courses }}</h4>
-                        <p class="text-sm font-medium text-slate-500">Active Courses</p>
-                    </div>
-                </div>
-                <!-- Stat 3 -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
-                            <i data-lucide="shield" class="w-6 h-6 text-indigo-600"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-3xl font-bold text-slate-900 mb-1">{{ total_batches }}</h4>
-                        <p class="text-sm font-medium text-slate-500">Total Batches</p>
-                    </div>
-                </div>
-                <!-- Stat 4 Placeholder -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm opacity-60">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
-                            <i data-lucide="archive" class="w-6 h-6 text-amber-600"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-3xl font-bold text-slate-900 mb-1">0</h4>
-                        <p class="text-sm font-medium text-slate-500">Total Submissions</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex flex-col sm:flex-row items-center gap-4 pb-4">
-                 <a href="{% url 'dashboard:admin_courses' %}" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors shadow-sm">
-                    Manage Courses
-                </a>
-                <a href="{% url 'dashboard:admin_batches' %}" class="w-full sm:w-auto px-6 py-3 bg-white text-indigo-600 font-medium rounded-xl border border-indigo-200 hover:bg-indigo-50 transition-colors shadow-sm">
-                    Manage Batches
-                </a>
-            </div>
-        </main>
+        <div>
+            <h4 class="text-3xl font-bold text-slate-900 mb-1">{{ total_users }}</h4>
+            <p class="text-sm font-medium text-slate-500">Total Users</p>
+        </div>
     </div>
+    <!-- Stat 2 -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                <i data-lucide="book-open" class="w-6 h-6 text-green-600"></i>
+            </div>
+        </div>
+        <div>
+            <h4 class="text-3xl font-bold text-slate-900 mb-1">{{ active_courses }}</h4>
+            <p class="text-sm font-medium text-slate-500">Active Courses</p>
+        </div>
+    </div>
+    <!-- Stat 3 -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
+                <i data-lucide="shield" class="w-6 h-6 text-indigo-600"></i>
+            </div>
+        </div>
+        <div>
+            <h4 class="text-3xl font-bold text-slate-900 mb-1">{{ total_batches }}</h4>
+            <p class="text-sm font-medium text-slate-500">Total Batches</p>
+        </div>
+    </div>
+    <!-- Stat 4 Placeholder -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm opacity-60">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                <i data-lucide="archive" class="w-6 h-6 text-amber-600"></i>
+            </div>
+        </div>
+        <div>
+            <h4 class="text-3xl font-bold text-slate-900 mb-1">0</h4>
+            <p class="text-sm font-medium text-slate-500">Total Submissions</p>
+        </div>
+    </div>
+</div>
 
-    <!-- Scripts -->
-    <script>
-        lucide.createIcons();
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('mobile-overlay');
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
-        }
-    </script>
-</body>
-</html>
+<div class="flex flex-col sm:flex-row items-center gap-4 pb-4">
+        <a href="{% url 'dashboard:admin_courses' %}" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors shadow-sm text-center">
+        Manage Courses
+    </a>
+    <a href="{% url 'dashboard:admin_batches' %}" class="w-full sm:w-auto px-6 py-3 bg-white text-indigo-600 font-medium rounded-xl border border-indigo-200 hover:bg-indigo-50 transition-colors shadow-sm text-center">
+        Manage Batches
+    </a>
+</div>
+{% endblock %}

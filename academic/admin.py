@@ -1,21 +1,16 @@
 from django.contrib import admin
-from .models import Course, Batch, FacultyCourseBatchMapping
+from .models import Course, Batch
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('code', 'name', 'semester', 'department')
-    search_fields = ('code', 'name', 'department')
-    list_filter = ('semester', 'department')
+    list_display = ('code', 'name', 'semester', 'department', 'is_active')
+    list_filter = ('semester', 'department', 'is_active')
+    search_fields = ('code', 'name')
+    filter_horizontal = ('students',)
 
 @admin.register(Batch)
 class BatchAdmin(admin.ModelAdmin):
-    list_display = ('name', 'academic_year')
+    list_display = ('name', 'academic_year', 'semester', 'is_active')
+    list_filter = ('academic_year', 'semester', 'is_active')
     search_fields = ('name', 'academic_year')
-    list_filter = ('academic_year',)
-    filter_horizontal = ('students',)
-
-@admin.register(FacultyCourseBatchMapping)
-class FacultyCourseBatchMappingAdmin(admin.ModelAdmin):
-    list_display = ('faculty', 'course', 'batch')
-    list_filter = ('course', 'batch')
-    search_fields = ('faculty__username', 'faculty__first_name', 'course__code', 'batch__name')
+    filter_horizontal = ('students', 'courses')

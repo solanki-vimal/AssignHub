@@ -1,0 +1,35 @@
+.role-radio:checked + .role-card {
+    border-color: #14b8a6;
+    background-color: #f0fdfa;
+}
+.role-radio:checked + .role-card .icon-container {
+    background-color: #14b8a6;
+}
+.role-radio:checked + .role-card .icon-svg {
+    color: white !important;
+}
+.role-radio:checked + .role-card .label-text {
+    color: #0f766e;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-slow {
+    0%, 100% { opacity: 0.1; transform: scale(1); }
+    50% { opacity: 0.2; transform: scale(1.1); }
+}
+
+.float-animation {
+    animation: float 6s ease-in-out infinite;
+}
+
+.bg-mesh {
+    background-color: #0f172a;
+    background-image: 
+        radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+        radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+}

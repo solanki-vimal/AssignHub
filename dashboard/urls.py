@@ -5,6 +5,7 @@ app_name = 'dashboard'
 
 urlpatterns = [
     path('admin/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin/users/', views.admin_users, name='admin_users'),
     path('admin/courses/', views.admin_courses, name='admin_courses'),
     path('admin/courses/<int:pk>/edit/', views.admin_course_edit, name='admin_course_edit'),
     path('admin/courses/<int:pk>/delete/', views.admin_course_delete, name='admin_course_delete'),
@@ -16,6 +17,8 @@ urlpatterns = [
     path('admin/batches/<int:pk>/delete/', views.admin_batch_delete, name='admin_batch_delete'),
     path('admin/batches/<int:pk>/archive/', views.admin_batch_archive, name='admin_batch_archive'),
     path('admin/batches/<int:pk>/students/', views.admin_manage_batch_students, name='admin_manage_batch_students'),
+    path('admin/batches/<int:pk>/courses/', views.admin_manage_batch_courses, name='admin_manage_batch_courses'),
+    path('admin/logs/', views.admin_logs, name='admin_logs'),
     
     path('faculty/', views.faculty_dashboard, name='faculty_dashboard'),
     path('student/', views.student_dashboard, name='student_dashboard'),

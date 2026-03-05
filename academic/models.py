@@ -45,24 +45,13 @@ class Batch(models.Model):
         related_name='enrolled_batches',
         blank=True
     )
+    courses = models.ManyToManyField(
+        Course,
+        related_name='batches',
+        blank=True
+    )
     is_active = models.BooleanField(default=True)
     is_archived = models.BooleanField(default=False)
     
     def __str__(self):
         return f"{self.name} ({self.academic_year})"
-
-class FacultyCourseBatchMapping(models.Model):
-    faculty = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        limit_choices_to={'role': 'faculty'},
-        related_name='course_assignments'
-    )
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='faculty_assignments')
-    batch = models.ForeignKey(Batch, on_delete=models.CASCADE, related_name='faculty_assignments')
-
-    class Meta:
-        unique_together = ('faculty', 'course', 'batch')
-
-    def __str__(self):
-        return f"{self.faculty.username} - {self.course.code} - {self.batch.name}"

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from .models import User
+from dashboard.models import ActivityLog
 
 def login_view(request):
     if request.method == 'POST':
@@ -15,6 +16,12 @@ def login_view(request):
                 messages.error(request, f"Please select the correct role. You are registered as a {user.get_role_display()}.")
             else:
                 login(request, user)
+                ActivityLog.objects.create(
+                    user=user,
+                    action='auth',
+                    action_name='User Login',
+                    details=f'Logged in from IP: {request.META.get("REMOTE_ADDR")}'
+                )
                 return redirect('accounts:dashboard_redirect')
         else:
             messages.error(request, "Invalid credentials")
@@ -50,12 +57,25 @@ def register_view(request):
                 user.is_superuser = True
                 
             user.save()
+            ActivityLog.objects.create(
+                user=user,
+                action='auth',
+                action_name='User Registered',
+                details=f'New {role} account created.'
+            )
             messages.success(request, f"Account created successfully! Please sign in as {role.capitalize()}.")
             return redirect('accounts:login')
             
     return render(request, 'register.html')
 
 def logout_view(request):
+    if request.user.is_authenticated:
+        ActivityLog.objects.create(
+            user=request.user,
+            action='auth',
+            action_name='User Logout',
+            details='Logged out successfully.'
+        )
     logout(request)
     return redirect('home')
 
