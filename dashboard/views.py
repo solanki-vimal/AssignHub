@@ -628,7 +628,34 @@ def admin_logs(request):
 
 @login_required
 def faculty_dashboard(request):
-    return render(request, 'dashboard/faculty_dashboard.html')
+    if request.user.role != 'faculty':
+        if request.user.role == 'admin':
+            return redirect('dashboard:admin_dashboard')
+        elif request.user.role == 'student':
+            return redirect('dashboard:student_dashboard')
+        return redirect('home')
+
+    # Fetch faculty-specific data
+    faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False).annotate(
+        students_count=Count('students')
+    )
+    
+    total_courses = faculty_courses.count()
+    total_students = faculty_courses.aggregate(total=Count('students', distinct=True))['total'] or 0
+    
+    # Placeholder for assignments until the model is fully implemented/populated
+    # Assuming Assignments model exists in assignments app, but seen as empty earlier
+    active_assignments = 0 
+    recent_assignments = []
+
+    context = {
+        'total_courses': total_courses,
+        'total_students': total_students,
+        'active_assignments': active_assignments,
+        'faculty_courses': faculty_courses,
+        'recent_assignments': recent_assignments,
+    }
+    return render(request, 'dashboard/faculty_dashboard.html', context)
 
 @login_required
 def student_dashboard(request):

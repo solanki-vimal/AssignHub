@@ -1,0 +1,205 @@
+1️⃣ Abstract Super Class  
+ 
+Class: User (Abstract)  
+Attributes:  
+ userId : String  
+ name : String  
+ email : String  
+ password : String  
+ contactNo : String  
+ role : String  
+ accountStatus : String  
+Operations:  
+ login(email, password) : boolean  
+ logout() : void  
+ updateProfile(name, email, contactNo) : void  
+ changePassword(oldPwd, newPwd) : boolean  
+ viewDashboard() : void  
+ 
+2️⃣ Specialized User Classes (Inheritance)  
+ 
+Class: Student (extends User)  
+Attributes:  
+ enrollmentNo : String  
+ batchId : String  
+Operations:  
+ viewAssignments() : List<Assignment>  
+ submitAssignment(assignmentId, file) : Submission  
+ reviseSubmission(submissionId, file) : void  
+ trackSubmissionStatus(assignmentId) : String  
+ viewEvaluation(submissionId) : Evaluation  
+ 
+Class: Faculty (extends User)  
+Attrib utes:  
+ facultyId : String  
+ department : String  
+Operations:  
+ createAssignment(details) : Assignment  
+ publishAssignment(assignmentId) : void  
+ unpublishAssignment(assignmentId) : void  
+ evaluateSubmission(submissionId, marks, remarks) : Evaluation  
+ extendDeadline(assignmentId, newDate) : void  
+ viewSubmissions(assignmentId) : List<Submission>  
+ generateReport(courseId) : Report  
+ 
+Class: Administrator (extends User)  
+Attributes:  
+ adminId : String  
+Operations:  
+ createUser(userDetails) : User  
+ updateUser(userId)  : void  
+ deactivateUser(userId) : void  
+ createCourse(courseDetails) : Course  
+ updateCourse(courseId) : void  
+ createBatch(batchDetails) : Batch  
+ assignStudentToBatch(studentId, batchId) : void  
+ assignFaculty(courseId, batchId, facultyId) : void  
+ viewAuditLogs() : List<AuditLog>  
+ 
+3️⃣ Core Academic Classes  
+ 
+Class: Course  
+Attributes:  
+ courseId : String  
+ courseCode : String  
+ courseName : String  
+ semester : int  
+ department : String  
+Operations:  
+ addAssignment(assignment) : void  
+ updateCourseDetails() : void  
+ getAssignments() :  List<Assignment>  
+ 
+Class: Batch  
+Attributes:  
+ batchId : String  
+ batchName : String  
+ academicYear : String  
+Operations:  
+ addStudent(student) : void  
+ removeStudent(studentId) : void  
+ getStudentList() : List<Student>  
+ 
+Class: FacultyCourseBatchMapping  
+Attributes:  
+ mappingId : String  
+ facultyId : String  
+ courseId : String  
+ batchId : String  
+Operations:  
+ createMapping() : void  
+ removeMapping() : void  
+ 
+4️⃣ Assignment Handling Classes  
+ 
+Class: Assignment  
+Attributes:  
+ assignmentId : String  
+ title : String  
+ description : String  
+ startDate : Date  
+ dueDate : Date  
+ maxMarks : int  
+ status : String (Published / Unpublished)  
+Operations:  
+ publish() : void  
+ unpublish() : void  
+ updateDetails() : void  
+ extendDeadline(newDate) : void  
+ getSubmissions() : List<Submission>  
+ 
+Class: Submission  
+Attributes:  
+ submissionId : String  
+ submissionDate : DateTime  
+ filePath : String  
+ status : String (Submitted / Late / Evaluated)  
+ studentId : String  
+ assignmentId : String  
+Operations:  
+ validateFile() : boolean  
+ storeSubmission() : void  
+ updateSubmission(file) : void 
+ updateStatus(status) : void  
+ 
+Class: Evaluation  
+Attributes:  
+ evaluationId : String  
+ marks : int  
+ remarks : String  
+ correctedFilePath : String  
+ evaluationDate : DateTime  
+ submissionId : String  
+Operations:  
+ assignMarks(marks) : void  
+ addRemarks(text) : void  
+ uploadCorrectedFile(file) : void  
+ saveEvaluation() : void  
+ 
+5️⃣ Supporting Classes  
+ 
+Class: Notification  
+Attributes:  
+ notificationId : String  
+ message : String  
+ date : DateTime  
+ userId : String  
+ status : String (Read/Unread)  
+Operations:  
+ sendNotification() : void  
+ markAsRead() : void  
+ getNotifications(userId) : List<Notification>  
+ 
+Class: Dashboard  
+Attributes:  
+ dashboardId : String  
+ userId : String  
+Operations:  
+ displayPendingAssignments() : void  
+ displaySubmissionStatus() : void  
+ displayEvaluationSummary() : void  
+ generateStatistics() : void  
+ 
+Class: AuditLog  
+Attributes:  
+ logId : String  
+ userId : String  
+ action : String  
+ timestamp : DateTime  
+Operations:  
+ recordAction() : void  
+ getLogs() : List<AuditLog>  
+ 
+🔗 RELATIONSHIPS BETWEEN 
+CLASSES  
+ 
+1️⃣ Inheritance (Generalization)  
+ User ⟶ Student  
+ User ⟶ Faculty  
+ User ⟶ Administrator  
+ 
+2️⃣ Associations  
+ Course 1 ——  * Assignment  
+ Assignment 1 ——  * Submission  
+ Submission 1 ——  1 Evaluation  
+ Student 1 ——  * Submission  
+ Faculty 1 ——  * Assignment  
+ Batch 1 ——  * Student  
+ FacultyCourseBatchMapping links Faculty + Course + Batch  
+ User 1 ——  * Notification  
+ User 1 ——  1 Dashboard  
+ Administrator 1 ——  * AuditLog  
+ 
+3️⃣ Aggregation / Composition  
+ Assignment ◼——  Submission (Composition)  
+ Submission ◼——  Evaluation (Composition)  
+ Course ◇——  Assignment (Aggregation)  
+ 
+🎯 Diagram Drawing Tip for Lab  
+When drawing in UML:  
+ Use abstract class (User)  at top  
+ Show inheritance arrows downward  
+ Use multiplicity (1, *, 0..1) clearly  
+ Show composition with filled diamond  
+ Show aggregation with hollow diamond  
+ 
