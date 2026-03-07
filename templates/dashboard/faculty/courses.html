@@ -1,0 +1,67 @@
+{% extends 'faculty/base_faculty.html' %}
+{% load static %}
+
+{% block title %}My Courses - Faculty{% endblock %}
+{% block header_title %}My Assigned Courses{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="p-6 border-b border-slate-100">
+        <h2 class="text-lg font-bold text-slate-800">Assigned Courses</h2>
+        <p class="text-sm text-slate-500">List of courses you are currently teaching.</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Course Code</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Course Name</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Semester</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Associated Batches
+                    </th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for course in courses %}
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg font-bold text-xs">{{
+                            course.code }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="font-semibold text-slate-700">{{ course.name }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-slate-600">
+                        {{ course.semester }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-wrap gap-2">
+                            {% for batch in course.batches.all %}
+                            <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{{ batch.name
+                                }}</span>
+                            {% empty %}
+                            <span class="text-xs text-slate-400 italic">No batches linked</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right whitespace-nowrap">
+                        <a href="#" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">View Details</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="book" class="w-12 h-12 text-slate-200 mb-2"></i>
+                            <p>No courses assigned to you yet.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

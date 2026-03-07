@@ -23,6 +23,8 @@ urlpatterns = [
     path('admin/settings/', views.admin_settings, name='admin_settings'),
     
     path('faculty/', views.faculty_dashboard, name='faculty_dashboard'),
+    path('faculty/courses/', views.faculty_courses, name='faculty_courses'),
+    path('faculty/students/', views.faculty_students, name='faculty_students'),
     path('student/', views.student_dashboard, name='student_dashboard'),
     path('profile/', views.profile_view, name='profile'),
 ]

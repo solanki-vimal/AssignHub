@@ -658,6 +658,38 @@ def faculty_dashboard(request):
     return render(request, 'dashboard/faculty_dashboard.html', context)
 
 @login_required
+def faculty_courses(request):
+    if request.user.role != 'faculty':
+        return redirect('home')
+        
+    # Get courses assigned to this faculty, including prefetching batches
+    courses = Course.objects.filter(faculty=request.user, is_archived=False).prefetch_related('batches')
+    
+    context = {
+        'courses': courses,
+    }
+    return render(request, 'dashboard/faculty/courses.html', context)
+
+@login_required
+def faculty_students(request):
+    if request.user.role != 'faculty':
+        return redirect('home')
+        
+    # Get all courses assigned to this faculty
+    faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False)
+    
+    # Get all unique students enrolled in these courses
+    # Prefetching to avoid N+1 issues when displaying student details
+    students = request.user.assigned_courses.filter(is_archived=False).values_list('students', flat=True)
+    User = get_user_model()
+    enrolled_students = User.objects.filter(id__in=students, role='student').distinct().prefetch_related('enrolled_batches', 'enrolled_courses')
+    
+    context = {
+        'students': enrolled_students,
+    }
+    return render(request, 'dashboard/faculty/students.html', context)
+
+@login_required
 def student_dashboard(request):
     return render(request, 'dashboard/student_dashboard.html')
 

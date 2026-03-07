@@ -1,0 +1,83 @@
+{% extends 'faculty/base_faculty.html' %}
+{% load static %}
+
+{% block title %}My Students - Faculty{% endblock %}
+{% block header_title %}Enrolled Students{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+        <div>
+            <h2 class="text-lg font-bold text-slate-800">My Students</h2>
+            <p class="text-sm text-slate-500">Students enrolled in your courses.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input type="text" placeholder="Search students..."
+                    class="pl-10 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            </div>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Student Name</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Enrollment No</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Batch</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Department</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for student in students %}
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xs uppercase">
+                                {{ student.first_name|default:student.email|make_list|first }}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-slate-800">{{ student.get_full_name }}</div>
+                                <div class="text-xs text-slate-500">{{ student.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-slate-600 font-medium">
+                        {{ student.enrollment_no|default:"N/A" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% for batch in student.enrolled_batches.all %}
+                        <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{{ batch.name }}</span>
+                        {% empty %}
+                        <span class="text-xs text-slate-400 font-medium italic">N/A</span>
+                        {% endfor %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-slate-600">
+                        {{ student.department|default:"N/A" }}
+                    </td>
+                    <td class="px-6 py-4 text-right whitespace-nowrap">
+                        <button
+                            class="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors">
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="users" class="w-12 h-12 text-slate-200 mb-2"></i>
+                            <p>No students enrolled in your courses.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
