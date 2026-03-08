@@ -741,7 +741,7 @@ def faculty_create_assignment(request):
                 messages.error(request, f"Error creating assignment: {str(e)}")
                 
     # Get courses assigned to this faculty to populate the form
-    faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False).prefetch_related('batches')
+    faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False).annotate(students_count=Count('students', distinct=True)).prefetch_related('batches')
     
     context = {
         'faculty_courses': faculty_courses,

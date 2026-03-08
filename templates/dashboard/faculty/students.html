@@ -24,6 +24,7 @@
             <thead>
                 <tr class="bg-slate-50 border-b border-slate-100">
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Student Name</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Courses</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Enrollment No</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Batch</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Department</th>
@@ -44,6 +45,16 @@
                                 <div class="font-semibold text-slate-800">{{ student.get_full_name }}</div>
                                 <div class="text-xs text-slate-500">{{ student.email }}</div>
                             </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex flex-wrap gap-1">
+                            {% for course in student.enrolled_courses.all %}
+                            {% if course.faculty == request.user %}
+                            <span class="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[10px] font-bold">{{
+                                course.code }}</span>
+                            {% endif %}
+                            {% endfor %}
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-slate-600 font-medium">

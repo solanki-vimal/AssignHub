@@ -11,55 +11,56 @@
             {% csrf_token %}
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <!-- Course & Batch Selection -->
+                <!-- Left Column: Course & Batch & Date -->
                 <div class="space-y-6">
                     <div>
-                        <label for="course" class="block text-sm font-bold text-slate-700 mb-2">Select Course</label>
-                        <select name="course_id" id="course" required
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
-                            <option value="">Choose a course...</option>
-                            {% for course in faculty_courses %}
-                            <option value="{{ course.id }}">{{ course.code }} - {{ course.name }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="{{ form.course.id_for_label }}"
+                            class="block text-sm font-bold text-slate-700 mb-2">Select Course</label>
+                        {{ form.course }}
+                        {% if form.course.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.course.errors.0 }}</p>
+                        {% endif %}
                     </div>
 
                     <div>
-                        <label for="batch" class="block text-sm font-bold text-slate-700 mb-2">Select Batch</label>
-                        <select name="batch_id" id="batch" required
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
-                            <option value="">Choose a batch...</option>
-                            {% for course in faculty_courses %}
-                            {% for batch in course.batches.all %}
-                            <option value="{{ batch.id }}" data-course="{{ course.id }}">{{ batch.name }} ({{
-                                batch.academic_year }})</option>
-                            {% endfor %}
-                            {% endfor %}
-                        </select>
+                        <label for="{{ form.batch.id_for_label }}"
+                            class="block text-sm font-bold text-slate-700 mb-2">Select Batch</label>
+                        {{ form.batch }}
+                        <p class="text-[10px] text-slate-400 mt-1">Only batches associated with the selected course will
+                            appear.</p>
+                        {% if form.batch.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.batch.errors.0 }}</p>
+                        {% endif %}
                     </div>
 
                     <div>
-                        <label for="due_date" class="block text-sm font-bold text-slate-700 mb-2">Due Date &
-                            Time</label>
-                        <input type="datetime-local" name="due_date" id="due_date" required
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-slate-600">
+                        <label for="{{ form.due_date.id_for_label }}"
+                            class="block text-sm font-bold text-slate-700 mb-2">Due Date & Time</label>
+                        {{ form.due_date }}
+                        {% if form.due_date.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.due_date.errors.0 }}</p>
+                        {% endif %}
                     </div>
                 </div>
 
-                <!-- Basic Info -->
+                <!-- Right Column: Title & Description -->
                 <div class="space-y-6">
                     <div>
-                        <label for="title" class="block text-sm font-bold text-slate-700 mb-2">Assignment Title</label>
-                        <input type="text" name="title" id="title" placeholder="e.g. Lab 1: Getting Started" required
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                        <label for="{{ form.title.id_for_label }}"
+                            class="block text-sm font-bold text-slate-700 mb-2">Assignment Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.title.errors.0 }}</p>
+                        {% endif %}
                     </div>
 
                     <div>
-                        <label for="description" class="block text-sm font-bold text-slate-700 mb-2">Description /
-                            Instructions</label>
-                        <textarea name="description" id="description" rows="5"
-                            placeholder="Enter assignment instructions..." required
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all resize-none"></textarea>
+                        <label for="{{ form.description.id_for_label }}"
+                            class="block text-sm font-bold text-slate-700 mb-2">Description / Instructions</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -80,14 +81,14 @@
             <!-- Published Toggle -->
             <div class="flex items-center gap-3 mb-8">
                 <div class="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 cursor-pointer transition-colors"
-                    onclick="this.classList.toggle('bg-indigo-600'); document.getElementById('published').click();">
+                    id="toggle-bg" onclick="togglePublished()">
                     <div class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"
                         id="toggle-circle"></div>
                 </div>
-                <input type="checkbox" name="published" id="published" class="hidden"
-                    onchange="document.getElementById('toggle-circle').classList.toggle('translate-x-6'); document.getElementById('toggle-circle').classList.toggle('translate-x-1');">
-                <label for="published" class="text-sm font-medium text-slate-700 cursor-pointer">Publish immediately
-                    (visible to students)</label>
+                {{ form.published }}
+                <label for="{{ form.published.id_for_label }}"
+                    class="text-sm font-medium text-slate-700 cursor-pointer">Publish immediately (visible to
+                    students)</label>
             </div>
 
             <div class="flex items-center gap-4 border-t border-slate-100 pt-8">
@@ -104,21 +105,86 @@
 </div>
 
 <script>
-    // Basic filter for batches based on selected course
-    document.getElementById('course').addEventListener('change', function () {
-        const courseId = this.value;
-        const batchSelect = document.getElementById('batch');
-        const batches = batchSelect.options;
+    function togglePublished() {
+        const checkbox = document.getElementById('{{ form.published.id_for_label }}');
+        const bg = document.getElementById('toggle-bg');
+        const circle = document.getElementById('toggle-circle');
 
-        for (let i = 0; i < batches.length; i++) {
-            if (batches[i].value === "") continue;
-            if (batches[i].getAttribute('data-course') === courseId) {
-                batches[i].style.display = "";
-            } else {
-                batches[i].style.display = "none";
-            }
+        checkbox.checked = !checkbox.checked;
+        if (checkbox.checked) {
+            bg.classList.add('bg-indigo-600');
+            bg.classList.remove('bg-slate-200');
+            circle.classList.add('translate-x-6');
+            circle.classList.remove('translate-x-1');
+        } else {
+            bg.classList.remove('bg-indigo-600');
+            bg.classList.add('bg-slate-200');
+            circle.classList.remove('translate-x-6');
+            circle.classList.remove('translate-x-1');
         }
-        batchSelect.value = "";
+    }
+
+    // JSON Map of Course IDs to Batches
+    const courseToBatches = JSON.parse('{{ course_to_batches_json|safe }}');
+
+    function filterBatches() {
+        const courseSelect = document.getElementById('{{ form.course.id_for_label }}');
+        const batchSelect = document.getElementById('{{ form.batch.id_for_label }}');
+        const selectedCourseId = courseSelect.value;
+        const previousBatchId = batchSelect.value;
+
+        // Save current selected batch if any, to restore after rebuild if still valid
+        const preservedBatchId = previousBatchId;
+
+        // Clear existing options
+        batchSelect.innerHTML = '';
+
+        if (selectedCourseId && courseToBatches[selectedCourseId]) {
+            const batches = courseToBatches[selectedCourseId];
+            if (batches.length > 0) {
+                batches.forEach(batch => {
+                    const option = document.createElement('option');
+                    option.value = batch.id;
+                    option.textContent = batch.name;
+                    if (batch.id === preservedBatchId) {
+                        option.selected = true;
+                    }
+                    batchSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No batches assigned to this course";
+                batchSelect.appendChild(option);
+            }
+        } else {
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "Please select a course first";
+            batchSelect.appendChild(option);
+        }
+    }
+
+    // Initialize state
+    window.addEventListener('load', () => {
+        // Toggle state
+        const checkbox = document.getElementById('{{ form.published.id_for_label }}');
+        if (checkbox && checkbox.checked) {
+            const bg = document.getElementById('toggle-bg');
+            const circle = document.getElementById('toggle-circle');
+            bg.classList.add('bg-indigo-600');
+            bg.classList.remove('bg-slate-200');
+            circle.classList.add('translate-x-6');
+            circle.classList.remove('translate-x-1');
+        }
+
+        // Setup initial filtering
+        const courseSelect = document.getElementById('{{ form.course.id_for_label }}');
+        if (courseSelect) {
+            courseSelect.addEventListener('change', filterBatches);
+            filterBatches(); // Run once for initial state
+        }
     });
+
 </script>
 {% endblock %}
