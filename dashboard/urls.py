@@ -25,6 +25,8 @@ urlpatterns = [
     path('faculty/', views.faculty_dashboard, name='faculty_dashboard'),
     path('faculty/courses/', views.faculty_courses, name='faculty_courses'),
     path('faculty/students/', views.faculty_students, name='faculty_students'),
+    path('faculty/assignments/', views.faculty_assignments, name='faculty_assignments'),
+    path('faculty/assignments/create/', views.faculty_create_assignment, name='faculty_create_assignment'),
     path('student/', views.student_dashboard, name='student_dashboard'),
     path('profile/', views.profile_view, name='profile'),
 ]

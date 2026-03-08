@@ -1,0 +1,98 @@
+{% extends 'faculty/base_faculty.html' %}
+{% load static %}
+
+{% block title %}Assignments - Faculty{% endblock %}
+{% block header_title %}Managed Assignments{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'dashboard:faculty_create_assignment' %}"
+    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/20 font-semibold text-sm">
+    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+    Create Assignment
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="p-6 border-b border-slate-100">
+        <h2 class="text-lg font-bold text-slate-800">Assignment History</h2>
+        <p class="text-sm text-slate-500">View and manage assignments created for your batches.</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Title</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Course & Batch</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Due Date</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Created At</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for assignment in assignments %}
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-semibold text-slate-800">{{ assignment.title }}</div>
+                        {% if assignment.attachments.exists %}
+                        <div class="flex items-center gap-1 text-xs text-slate-400 mt-1">
+                            <i data-lucide="paperclip" class="w-3 h-3"></i>
+                            <span>{{ assignment.attachments.count }} Attachments</span>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-slate-700">{{ assignment.course.code }}</div>
+                        <div class="text-xs text-slate-500">{{ assignment.batch.name }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span
+                            class="text-sm {% if assignment.due_date < now %}text-red-500{% else %}text-slate-600{% endif %} font-medium">
+                            {{ assignment.due_date|date:"M d, Y H:i" }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if assignment.published %}
+                        <span
+                            class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg font-bold text-xs border border-emerald-100">Published</span>
+                        {% else %}
+                        <span
+                            class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg font-bold text-xs border border-slate-200">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-slate-500 text-sm">
+                        {{ assignment.created_at|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4 text-right whitespace-nowrap">
+                        <div class="flex items-center justify-end gap-2">
+                            <button
+                                class="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button
+                                class="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-red-600 transition-colors">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="file-text" class="w-12 h-12 text-slate-200 mb-2"></i>
+                            <p>No assignments created yet.</p>
+                            <a href="{% url 'dashboard:faculty_create_assignment' %}"
+                                class="mt-4 text-indigo-600 font-semibold hover:underline">Create your first
+                                assignment</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

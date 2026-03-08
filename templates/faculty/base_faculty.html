@@ -83,15 +83,15 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#"
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
+                        <a href="{% url 'dashboard:faculty_assignments' %}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if 'faculty_assignment' in request.resolver_match.url_name %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
                             <i data-lucide="file-text" class="w-5 h-5"></i>
                             <span class="font-medium">Assignments</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#"
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-600 hover:bg-slate-100">
+                        <a href="{% url 'dashboard:faculty_create_assignment' %}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'faculty_create_assignment' %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
                             <i data-lucide="plus-circle" class="w-5 h-5"></i>
                             <span class="font-medium">Create Assignment</span>
                         </a>

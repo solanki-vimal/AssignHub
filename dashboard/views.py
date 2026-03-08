@@ -10,6 +10,7 @@ import re
 from datetime import datetime
 from django.db.models import Count, Q
 from dashboard.models import ActivityLog, SystemSettings
+from assignments.models import Assignment
 
 @login_required
 def admin_dashboard(request):
@@ -643,10 +644,10 @@ def faculty_dashboard(request):
     total_courses = faculty_courses.count()
     total_students = faculty_courses.aggregate(total=Count('students', distinct=True))['total'] or 0
     
-    # Placeholder for assignments until the model is fully implemented/populated
-    # Assuming Assignments model exists in assignments app, but seen as empty earlier
-    active_assignments = 0 
-    recent_assignments = []
+    # Fetch real assignment data
+    faculty_assignments = Assignment.objects.filter(created_by=request.user)
+    active_assignments = faculty_assignments.filter(published=True).count()
+    recent_assignments = faculty_assignments.order_by('-created_at')[:5]
 
     context = {
         'total_courses': total_courses,
@@ -688,6 +689,64 @@ def faculty_students(request):
         'students': enrolled_students,
     }
     return render(request, 'dashboard/faculty/students.html', context)
+
+@login_required
+def faculty_assignments(request):
+    if request.user.role != 'faculty':
+        return redirect('home')
+        
+    assignments = Assignment.objects.filter(created_by=request.user).select_related('course', 'batch').prefetch_related('attachments').order_by('-created_at')
+    
+    context = {
+        'assignments': assignments,
+    }
+    return render(request, 'dashboard/faculty/assignments.html', context)
+
+@login_required
+def faculty_create_assignment(request):
+    if request.user.role != 'faculty':
+        return redirect('home')
+        
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        course_id = request.POST.get('course_id')
+        batch_id = request.POST.get('batch_id')
+        due_date = request.POST.get('due_date')
+        published = request.POST.get('published') == 'on'
+        
+        if not all([title, description, course_id, batch_id, due_date]):
+            messages.error(request, "All fields are required.")
+        else:
+            try:
+                assignment = Assignment.objects.create(
+                    title=title,
+                    description=description,
+                    course_id=course_id,
+                    batch_id=batch_id,
+                    created_by=request.user,
+                    due_date=due_date,
+                    published=published
+                )
+                
+                # Handle file attachments
+                files = request.FILES.getlist('attachments')
+                from assignments.models import AssignmentAttachment
+                for f in files:
+                    AssignmentAttachment.objects.create(assignment=assignment, file=f)
+                
+                messages.success(request, f"Assignment '{title}' created successfully.")
+                return redirect('dashboard:faculty_assignments')
+            except Exception as e:
+                messages.error(request, f"Error creating assignment: {str(e)}")
+                
+    # Get courses assigned to this faculty to populate the form
+    faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False).prefetch_related('batches')
+    
+    context = {
+        'faculty_courses': faculty_courses,
+    }
+    return render(request, 'dashboard/faculty/create_assignment.html', context)
 
 @login_required
 def student_dashboard(request):
