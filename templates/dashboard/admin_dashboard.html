@@ -140,7 +140,8 @@
                         <span class="font-semibold text-slate-900">{{ student_count }}</span>
                     </div>
                     <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-teal-500 rounded-full" style="width: {{ student_percent|default:0 }}%;">
+                        <div class="h-full bg-teal-500 rounded-full"
+                            style="--width: {{ student_percent|default:0 }}%; width: var(--width);">
                         </div>
                     </div>
                 </div>
@@ -150,7 +151,8 @@
                         <span class="font-semibold text-slate-900">{{ faculty_count }}</span>
                     </div>
                     <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-500 rounded-full" style="width: {{ faculty_percent|default:0 }}%;">
+                        <div class="h-full bg-blue-500 rounded-full"
+                            style="--width: {{ faculty_percent|default:0 }}%; width: var(--width);">
                         </div>
                     </div>
                 </div>
@@ -160,7 +162,8 @@
                         <span class="font-semibold text-slate-900">{{ admin_count }}</span>
                     </div>
                     <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-indigo-500 rounded-full" style="width: {{ admin_percent|default:0 }}%;">
+                        <div class="h-full bg-indigo-500 rounded-full"
+                            style="--width: {{ admin_percent|default:0 }}%; width: var(--width);">
                         </div>
                     </div>
                 </div>
