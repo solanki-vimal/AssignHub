@@ -29,6 +29,9 @@ urlpatterns = [
     path('faculty/assignments/', assignment_views.faculty_assignments, name='faculty_assignments'),
     path('faculty/assignments/create/', assignment_views.faculty_create_assignment, name='faculty_create_assignment'),
     path('student/', views.student_dashboard, name='student_dashboard'),
+    path('student/courses/', views.student_courses, name='student_courses'),
+    path('student/assignments/', views.student_assignments, name='student_assignments'),
+    path('student/assignments/<int:pk>/', views.student_assignment_detail, name='student_assignment_detail'),
     path('profile/', views.profile_view, name='profile'),
 ]
 

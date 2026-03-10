@@ -1,0 +1,83 @@
+{% extends 'layouts/base_student.html' %}
+{% load static %}
+
+{% block title %}Assignments - Student{% endblock %}
+{% block header_title %}My Assignments 📝{% endblock %}
+
+{% block content %}
+<div class="mb-6 animate-fade-in-up">
+    <h2 class="text-2xl font-bold text-slate-900 mb-1">Assignments</h2>
+    <p class="text-slate-600">View and submit your course assignments.</p>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6 animate-fade-in-up" style="animation-delay: 0.1s;">
+    <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div class="relative flex-1 w-full md:max-w-md">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="text" id="assignment-search" placeholder="Search assignments..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+        </div>
+        <div class="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+            <button class="px-4 py-2 bg-indigo-50 text-indigo-700 font-medium rounded-lg whitespace-nowrap filter-btn active" data-filter="all">All</button>
+            <button class="px-4 py-2 bg-slate-50 text-slate-600 hover:bg-slate-100 font-medium rounded-lg whitespace-nowrap filter-btn" data-filter="pending">Pending</button>
+            <button class="px-4 py-2 bg-slate-50 text-slate-600 hover:bg-slate-100 font-medium rounded-lg whitespace-nowrap filter-btn" data-filter="submitted">Submitted</button>
+            <button class="px-4 py-2 bg-slate-50 text-slate-600 hover:bg-slate-100 font-medium rounded-lg whitespace-nowrap filter-btn" data-filter="evaluated">Evaluated</button>
+        </div>
+    </div>
+</div>
+
+<!-- Assignments List -->
+<div class="space-y-4 animate-fade-in-up" id="assignments-list" style="animation-delay: 0.2s;">
+    {% for assignment in assignments %}
+    <!-- Eventually, we'll check the submission status from the db. For now, defaulting all to pending. -->
+    <div class="assignment-card bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all p-5 sm:p-6 group flex flex-col sm:flex-row sm:items-center justify-between gap-6" 
+         data-search="{{ assignment.title|lower }} {{ assignment.course.code|lower }}"
+         data-status="pending">
+        
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0 mt-1">
+                <i data-lucide="file-text" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-bold">{{ assignment.course.code }}</span>
+                    <!-- Placeholder status badge -->
+                    <span class="px-2.5 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-bold flex items-center gap-1 status-badge">
+                        <i data-lucide="clock" class="w-3 h-3"></i> Pending
+                    </span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">{{ assignment.title }}</h3>
+                <p class="text-sm text-slate-500 line-clamp-1 mb-3">{{ assignment.description }}</p>
+                
+                <div class="flex items-center gap-4 text-xs font-medium text-slate-500">
+                    <span class="flex items-center gap-1.5 text-slate-600">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                        Due: {{ assignment.due_date|date:"F d, Y, h:i a" }}
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <i data-lucide="award" class="w-4 h-4 text-purple-500"></i>
+                        Max Marks: {{ assignment.max_marks }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex sm:flex-col items-center sm:items-end gap-3 shrink-0">
+            <a href="{% url 'dashboard:student_assignment_detail' assignment.pk %}" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors text-center shadow-sm hover:shadow shadow-indigo-200 focus:ring-2 focus:ring-indigo-500/20">
+                View & Submit
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="bg-white rounded-2xl border border-slate-100 border-dashed p-12 text-center">
+        <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="check-circle" class="w-8 h-8 text-slate-400"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 mb-1">All Caught Up!</h3>
+        <p class="text-slate-500">You have no active assignments right now.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<script src="{% static 'js/student_assignments.js' %}"></script>
+{% endblock %}

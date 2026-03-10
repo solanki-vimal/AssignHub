@@ -39,3 +39,40 @@ class AssignmentAttachment(models.Model):
 
     def __str__(self):
         return f"Attachment for {self.assignment.title}"
+
+class Submission(models.Model):
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions')
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        limit_choices_to={'role': 'student'},
+        related_name='submissions'
+    )
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('submitted', 'Submitted'),
+        ('late', 'Late Submission'),
+        ('evaluated', 'Evaluated')
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Evaluation fields
+    marks_obtained = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    faculty_remarks = models.TextField(blank=True)
+    
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('assignment', 'student')
+
+    def __str__(self):
+        return f"{self.student.username} - {self.assignment.title}"
+
+class SubmissionFile(models.Model):
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='files')
+    file = models.FileField(upload_to='submissions/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"File for {self.submission}"
