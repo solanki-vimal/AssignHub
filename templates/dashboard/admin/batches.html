@@ -1,4 +1,4 @@
-{% extends 'base_admin.html' %}
+{% extends 'layouts/base_admin.html' %}
 {% load static %}
 
 {% block title %}AssignHub - Admin Batches{% endblock %}
@@ -109,7 +109,7 @@
                         <div class="pt-3 border-t border-slate-100">
                             <p class="text-xs text-slate-400 mb-1">Coordinator</p>
                             {% if batch.coordinator %}
-                            <p class="text-sm font-medium text-slate-900">{{ batch.coordinator.first_name|default:batch.coordinator.username }}</p>
+                            <p class="text-sm font-medium text-slate-900">{{ batch.coordinator.get_full_name|default:batch.coordinator.email }}</p>
                             {% else %}
                             <p class="text-sm font-medium text-slate-400 italic">Not Assigned</p>
                             {% endif %}
@@ -167,7 +167,7 @@
                         <select name="coordinator_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
                             <option value="">-- None --</option>
                             {% for faculty in faculty_list %}
-                            <option value="{{ faculty.id }}">{{ faculty.first_name|default:faculty.username }}</option>
+                            <option value="{{ faculty.id }}">{{ faculty.get_full_name|default:faculty.email }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -222,7 +222,7 @@
                         <select id="edit-batch-coordinator" name="coordinator_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
                             <option value="">-- None --</option>
                             {% for faculty in faculty_list %}
-                            <option value="{{ faculty.id }}">{{ faculty.first_name|default:faculty.username }}</option>
+                            <option value="{{ faculty.id }}">{{ faculty.get_full_name|default:faculty.email }}</option>
                             {% endfor %}
                         </select>
                     </div>

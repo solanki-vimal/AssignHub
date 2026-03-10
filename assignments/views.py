@@ -14,9 +14,11 @@ def faculty_assignments(request):
         return redirect('home')
         
     assignments = Assignment.objects.filter(created_by=request.user).select_related('course', 'batch').prefetch_related('attachments').order_by('-created_at')
+    faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False)
     
     context = {
         'assignments': assignments,
+        'faculty_courses': faculty_courses,
     }
     return render(request, 'dashboard/faculty/assignments.html', context)
 

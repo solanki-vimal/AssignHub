@@ -35,23 +35,8 @@
                 </button>
             </div>
 
-            <!-- User Info -->
-            <!-- Profile Link -->
-            <a href="{% url 'dashboard:profile' %}" class="block">
-                <div class="p-4 mx-4 mt-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold uppercase">
-                            {{ request.user.first_name|default:request.user.email|make_list|first }}
-                        </div>
-                        <div class="overflow-hidden">
-                            <p class="font-semibold text-slate-800 truncate" title="{{ request.user.get_full_name|default:request.user.email }}">
-                                {{ request.user.get_full_name|default:request.user.email }}
-                            </p>
-                            <p class="text-xs text-slate-500 capitalize">{{ request.user.get_role_display }}</p>
-                        </div>
-                    </div>
-                </div>
-            </a>
+            <!-- User Info / Profile Link -->
+            {% include 'components/sidebar_profile.html' %}
 
             <!-- Navigation -->
             <nav class="flex-1 p-4 overflow-y-auto">
@@ -125,26 +110,7 @@
         </header>
 
         <main class="p-6">
-            {% if messages %}
-            <div class="mb-6 space-y-3" id="toast-container">
-                {% for message in messages %}
-                <div class="p-4 rounded-lg flex items-start justify-between gap-3 transition-opacity duration-300 {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}" id="toast-{{ forloop.counter }}">
-                    <div class="flex items-start gap-3">
-                        {% if message.tags == 'error' %}
-                            <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
-                        {% else %}
-                            <i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
-                        {% endif %}
-                        <div>{{ message }}</div>
-                    </div>
-                    <button type="button" onclick="dismissToast('toast-{{ forloop.counter }}')" class="flex-shrink-0 p-1 rounded-md inline-flex items-center justify-center text-slate-400 hover:text-slate-500 hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-                        <span class="sr-only">Close</span>
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
+            {% include 'components/toasts.html' %}
 
             {% block content %}
             {% endblock %}

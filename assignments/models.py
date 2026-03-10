@@ -14,6 +14,18 @@ class Assignment(models.Model):
         related_name='created_assignments'
     )
     due_date = models.DateTimeField()
+    
+    # Prototype Alignment Fields
+    start_date = models.DateTimeField(null=True, blank=True)
+    max_marks = models.IntegerField(default=100)
+    allowed_file_types = models.CharField(max_length=255, default='all', help_text="Comma separated types, e.g., 'pdf,docx,jpg'")
+    max_file_size_mb = models.IntegerField(default=10)
+    LATE_POLICY_CHOICES = [
+        ('strict', 'Strict Deadline'),
+        ('allow_penalty', 'Allow Late Submissions')
+    ]
+    late_policy = models.CharField(max_length=50, choices=LATE_POLICY_CHOICES, default='allow_penalty')
+    
     published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

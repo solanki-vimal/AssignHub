@@ -1,88 +1,117 @@
-{% extends 'faculty/base_faculty.html' %}
+{% extends 'layouts/base_faculty.html' %}
 {% load static %}
 
 {% block title %}My Students - Faculty{% endblock %}
 {% block header_title %}Enrolled Students{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-        <div>
-            <h2 class="text-lg font-bold text-slate-800">My Students</h2>
-            <p class="text-sm text-slate-500">Students enrolled in your courses.</p>
+<div class="mb-6 animate-fade-in-up">
+    <h2 class="text-2xl font-bold text-slate-900 mb-1">My Students</h2>
+    <p class="text-slate-600">Students enrolled in your courses.</p>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6 animate-fade-in-up" style="animation-delay: 0.1s;">
+    <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div class="relative flex-1 w-full">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="text" id="student-search" placeholder="Search by name or email..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500">
         </div>
-        <div class="flex items-center gap-3">
-            <div class="relative">
-                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                <input type="text" placeholder="Search students..."
-                    class="pl-10 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-            </div>
+        <div class="flex items-center gap-2 w-full md:w-auto">
+            <select id="course-filter" class="flex-1 md:w-48 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500">
+                <option value="all">All Courses</option>
+                {% for course in faculty_courses %}
+                <option value="{{ course.code|lower }}">{{ course.code }} - {{ course.name }}</option>
+                {% endfor %}
+            </select>
+            <select id="batch-filter" class="flex-1 md:w-32 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500">
+                <option value="all">All Batches</option>
+                {% for batch in faculty_batches %}
+                <option value="{{ batch.name|lower }}">{{ batch.name }}</option>
+                {% endfor %}
+            </select>
+            <button class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:bg-slate-100 transition-colors">
+                <i data-lucide="download" class="w-4 h-4"></i>
+            </button>
         </div>
     </div>
+</div>
+
+<!-- Table -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-fade-in-up" style="animation-delay: 0.2s;">
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-slate-50 border-b border-slate-100">
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Student Name</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Courses</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Enrollment No</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Batch</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Department</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions
-                    </th>
+                    <th class="p-4 text-sm font-semibold text-slate-600">Student Name</th>
+                    <th class="p-4 text-sm font-semibold text-slate-600">Courses</th>
+                    <th class="p-4 text-sm font-semibold text-slate-600">Roll No</th>
+                    <th class="p-4 text-sm font-semibold text-slate-600">Batch</th>
+                    <th class="p-4 text-sm font-semibold text-slate-600">Completion</th>
+                    <th class="p-4 text-sm font-semibold text-slate-600">Avg Score</th>
+                    <th class="p-4 text-sm font-semibold text-slate-600 text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody id="students-table-body" class="divide-y divide-slate-100">
                 {% for student in students %}
-                <tr class="hover:bg-slate-50/50 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap">
+                <!-- Build dynamic filter attributes -->
+                {% with courses_list="" batches_list="" %}
+                <tr class="hover:bg-slate-50 transition-colors student-row" 
+                    data-search="{{ student.get_full_name|lower }} {{ student.email|lower }} {{ student.enrollment_no|default:''|lower }}"
+                    data-courses="{% for batch in student.enrolled_batches.all %}{% for course in batch.courses.all %}{% if course.faculty == request.user %}{{ course.code|lower }} {% endif %}{% endfor %}{% endfor %}"
+                    data-batches="{% for batch in student.enrolled_batches.all %}{{ batch.name|lower }} {% endfor %}">
+                    <td class="p-4">
                         <div class="flex items-center gap-3">
-                            <div
-                                class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xs uppercase">
+                            <div class="w-8 h-8 {% cycle 'bg-blue-100 text-blue-600' 'bg-purple-100 text-purple-600' 'bg-green-100 text-green-600' 'bg-pink-100 text-pink-600' 'bg-amber-100 text-amber-600' 'bg-cyan-100 text-cyan-600' %} rounded-full flex items-center justify-center font-semibold text-xs uppercase">
                                 {{ student.first_name|default:student.email|make_list|first }}
                             </div>
                             <div>
-                                <div class="font-semibold text-slate-800">{{ student.get_full_name }}</div>
-                                <div class="text-xs text-slate-500">{{ student.email }}</div>
+                                <p class="font-medium text-slate-900 text-sm">{{ student.get_full_name }}</p>
+                                <p class="text-xs text-slate-500">{{ student.email }}</p>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="p-4 whitespace-nowrap">
                         <div class="flex flex-wrap gap-1">
-                            {% for course in student.enrolled_courses.all %}
-                            {% if course.faculty == request.user %}
-                            <span class="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[10px] font-bold">{{
-                                course.code }}</span>
-                            {% endif %}
+                            {% for batch in student.enrolled_batches.all %}
+                                {% for course in batch.courses.all %}
+                                    {% if course.faculty == request.user %}
+                                    <span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold">{{ course.code }}</span>
+                                    {% endif %}
+                                {% endfor %}
                             {% endfor %}
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-slate-600 font-medium">
+                    <td class="p-4 text-slate-600 text-sm">
                         {{ student.enrollment_no|default:"N/A" }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="p-4">
                         {% for batch in student.enrolled_batches.all %}
-                        <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{{ batch.name }}</span>
+                        <span class="bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded text-xs font-semibold">{{ batch.name }}</span>
                         {% empty %}
                         <span class="text-xs text-slate-400 font-medium italic">N/A</span>
                         {% endfor %}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-slate-600">
-                        {{ student.department|default:"N/A" }}
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-600 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <span class="text-xs text-slate-600">0/0</span>
+                        </div>
                     </td>
-                    <td class="px-6 py-4 text-right whitespace-nowrap">
-                        <button
-                            class="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors">
-                            <i data-lucide="mail" class="w-4 h-4"></i>
-                        </button>
+                    <td class="p-4 text-blue-600 font-semibold text-sm">0%</td>
+                    <td class="p-4 text-right">
+                        <button class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded transition-colors"><i data-lucide="mail" class="w-4 h-4"></i></button>
                     </td>
                 </tr>
+                {% endwith %}
                 {% empty %}
-                <tr>
-                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                <tr id="no-students-row">
+                    <td colspan="7" class="px-6 py-12 text-center text-slate-500">
                         <div class="flex flex-col items-center">
                             <i data-lucide="users" class="w-12 h-12 text-slate-200 mb-2"></i>
-                            <p>No students enrolled in your courses.</p>
+                            <p>No students found matching your criteria.</p>
                         </div>
                     </td>
                 </tr>
@@ -91,4 +120,5 @@
         </table>
     </div>
 </div>
+<script src="{% static 'js/faculty_students.js' %}"></script>
 {% endblock %}

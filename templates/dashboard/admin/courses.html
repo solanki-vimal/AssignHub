@@ -1,4 +1,4 @@
-{% extends 'base_admin.html' %}
+{% extends 'layouts/base_admin.html' %}
 {% load static %}
 
 {% block title %}AssignHub - Admin Courses{% endblock %}
@@ -170,7 +170,7 @@
                     <select name="faculty_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
                         <option value="">-- Unassigned --</option>
                         {% for faculty in faculty_list %}
-                        <option value="{{ faculty.id }}">{{ faculty.first_name|default:faculty.username }}</option>
+                        <option value="{{ faculty.id }}">{{ faculty.get_full_name|default:faculty.email }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -227,7 +227,7 @@
                     <select id="edit-course-faculty" name="faculty_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
                         <option value="">-- Unassigned --</option>
                         {% for faculty in faculty_list %}
-                        <option value="{{ faculty.id }}">{{ faculty.first_name|default:faculty.username }}</option>
+                        <option value="{{ faculty.id }}">{{ faculty.get_full_name|default:faculty.email }}</option>
                         {% endfor %}
                     </select>
                 </div>

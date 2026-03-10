@@ -26,7 +26,7 @@ def login_view(request):
         else:
             messages.error(request, "Invalid credentials")
             
-    return render(request, 'login.html')
+    return render(request, 'auth/login.html')
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -66,7 +66,7 @@ def register_view(request):
             messages.success(request, f"Account created successfully! Please sign in as {role.capitalize()}.")
             return redirect('accounts:login')
             
-    return render(request, 'register.html')
+    return render(request, 'auth/register.html')
 
 def logout_view(request):
     if request.user.is_authenticated:

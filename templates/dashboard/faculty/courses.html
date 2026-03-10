@@ -1,67 +1,94 @@
-{% extends 'faculty/base_faculty.html' %}
+{% extends 'layouts/base_faculty.html' %}
 {% load static %}
 
 {% block title %}My Courses - Faculty{% endblock %}
 {% block header_title %}My Assigned Courses{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-    <div class="p-6 border-b border-slate-100">
-        <h2 class="text-lg font-bold text-slate-800">Assigned Courses</h2>
-        <p class="text-sm text-slate-500">List of courses you are currently teaching.</p>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-slate-50 border-b border-slate-100">
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Course Code</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Course Name</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Semester</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Associated Batches
-                    </th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-                {% for course in courses %}
-                <tr class="hover:bg-slate-50/50 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg font-bold text-xs">{{
-                            course.code }}</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="font-semibold text-slate-700">{{ course.name }}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-slate-600">
-                        {{ course.semester }}
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="flex flex-wrap gap-2">
-                            {% for batch in course.batches.all %}
-                            <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{{ batch.name
-                                }}</span>
-                            {% empty %}
-                            <span class="text-xs text-slate-400 italic">No batches linked</span>
-                            {% endfor %}
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-right whitespace-nowrap">
-                        <a href="#" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">View Details</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
-                        <div class="flex flex-col items-center">
-                            <i data-lucide="book" class="w-12 h-12 text-slate-200 mb-2"></i>
-                            <p>No courses assigned to you yet.</p>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
+    <div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-1">Assigned Courses</h2>
+        <p class="text-slate-600">List of courses you are currently teaching.</p>
     </div>
 </div>
+
+<!-- Search Bar -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6 flex items-center animate-fade-in-up" style="animation-delay: 0.1s;">
+    <div class="relative w-full max-w-md">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+        <input type="text" id="course-search" placeholder="Search by course code or name..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500">
+    </div>
+</div>
+
+<div id="courses-list" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {% for course in courses %}
+    <div class="course-card bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-lg transition-all animate-fade-in-up" data-name="{{ course.name|lower }}" data-code="{{ course.code|lower }}">
+        <div class="h-2 {% cycle 'bg-gradient-to-r from-blue-500 to-blue-600' 'bg-gradient-to-r from-teal-500 to-teal-600' 'bg-gradient-to-r from-indigo-500 to-indigo-600' 'bg-gradient-to-r from-purple-500 to-purple-600' %}"></div>
+        <div class="p-6">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-semibold mb-2 inline-block">{{ course.code }}</span>
+                    <h3 class="text-lg font-semibold text-slate-900">{{ course.name }}</h3>
+                    <p class="text-sm text-slate-500">Semester {{ course.semester }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 mb-4">
+                <div class="flex items-center gap-1 text-sm text-slate-500">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>{{ course.students.count|default:"0" }} Students</span>
+                </div>
+                <div class="flex items-center gap-1 text-sm text-slate-500">
+                    <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                    <span>Batches: {% for batch in course.batches.all %}{{ batch.name }}{% if not forloop.last %}, {% endif %}{% empty %}None{% endfor %}</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="bg-slate-50 rounded-xl p-3">
+                    <p class="text-sm text-slate-500 mb-1">Assignments</p>
+                    <p class="text-xl font-bold text-slate-900">0</p>
+                    <p class="text-xs text-green-600">0 active</p>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-3">
+                    <p class="text-sm text-slate-500 mb-1">Submissions</p>
+                    <p class="text-xl font-bold text-slate-900">0</p>
+                    <p class="text-xs text-amber-600">0 pending</p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="flex items-center justify-between text-sm mb-2">
+                    <span class="text-slate-500">Evaluation Progress</span>
+                    <span class="font-medium text-slate-700">0%</span>
+                </div>
+                <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-600 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <a href="{% url 'dashboard:faculty_assignments' %}?course={{ course.id }}" class="flex-1">
+                    <button class="w-full border border-slate-200 text-slate-600 hover:bg-slate-50 py-2 rounded-lg text-sm font-medium transition-colors">
+                        View Assignments
+                    </button>
+                </a>
+                <a href="{% url 'dashboard:faculty_students' %}?course={{ course.id }}" class="flex-1">
+                    <button class="w-full border border-slate-200 text-slate-600 hover:bg-slate-50 py-2 rounded-lg text-sm font-medium transition-colors">
+                        View Students
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-1 lg:col-span-2 text-center py-12 text-slate-500">
+        <div class="flex flex-col items-center">
+            <i data-lucide="book" class="w-12 h-12 text-slate-200 mb-2"></i>
+            <p>No courses assigned to you yet.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<script src="{% static 'js/faculty_courses.js' %}"></script>
 {% endblock %}

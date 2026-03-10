@@ -5,26 +5,40 @@ from academic.models import Course, Batch
 class AssignmentForm(forms.ModelForm):
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'course', 'batch', 'due_date', 'published']
+        fields = ['title', 'description', 'course', 'batch', 'start_date', 'due_date', 'max_marks', 'max_file_size_mb', 'late_policy', 'published']
         widgets = {
             'title': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all',
-                'placeholder': 'e.g. Lab 1: Getting Started'
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500',
+                'placeholder': 'e.g. Lab 3: UML Diagrams'
             }),
             'description': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all resize-none',
-                'rows': 5,
-                'placeholder': 'Enter assignment instructions...'
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500',
+                'rows': 4,
+                'placeholder': 'Describe the assignment...'
             }),
             'course': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all'
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500'
             }),
             'batch': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all'
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500'
             }),
-            'due_date': forms.DateTimeInput(attrs={
-                'class': 'w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-slate-600',
-                'type': 'datetime-local'
+            'start_date': forms.DateInput(attrs={
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500',
+                'type': 'date'
+            }),
+            'due_date': forms.DateInput(attrs={
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500',
+                'type': 'date'
+            }),
+            'max_marks': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500',
+                'placeholder': '100'
+            }),
+            'max_file_size_mb': forms.Select(choices=[(5, '5 MB'), (10, '10 MB'), (25, '25 MB'), (50, '50 MB'), (100, '100 MB')], attrs={
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500'
+            }),
+            'late_policy': forms.RadioSelect(attrs={
+                'class': 'mt-1 border-slate-300 text-blue-600 focus:ring-blue-500'
             }),
             'published': forms.CheckboxInput(attrs={
                 'class': 'hidden'

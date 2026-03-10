@@ -1,56 +1,73 @@
-{% extends 'faculty/base_faculty.html' %}
+{% extends 'layouts/base_faculty.html' %}
 {% load static %}
 
 {% block title %}Dashboard - Faculty{% endblock %}
 {% block header_title %}Faculty Dashboard{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+<!-- Welcome Section -->
+<div class="mb-8 flex items-center justify-between animate-fade-in-up">
+    <div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-1">
+            System Overview 👨‍🏫
+        </h2>
+        <p class="text-slate-600">Monitor and manage your courses and assignments</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 animate-fade-in-up">
     <!-- Stat Card: Total Courses -->
-    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-                <i data-lucide="book-open" class="w-6 h-6"></i>
+            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <i data-lucide="book-open" class="w-6 h-6 text-blue-600"></i>
             </div>
-            <span
-                class="flex items-center gap-1 text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+            <span class="flex items-center gap-1 text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
                 <i data-lucide="trending-up" class="w-3 h-3"></i>
                 Active
             </span>
         </div>
-        <h3 class="text-slate-500 font-medium mb-1">Total Courses</h3>
-        <p class="text-3xl font-bold text-slate-800">{{ total_courses|default:"0" }}</p>
+        <div>
+            <h4 class="text-3xl font-bold text-slate-900 mb-1">{{ total_courses|default:"0" }}</h4>
+            <p class="text-sm font-medium text-slate-500">Total Courses</p>
+        </div>
     </div>
 
     <!-- Stat Card: Total Students -->
-    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                <i data-lucide="users" class="w-6 h-6"></i>
+            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
+                <i data-lucide="users" class="w-6 h-6 text-indigo-600"></i>
             </div>
         </div>
-        <h3 class="text-slate-500 font-medium mb-1">Enrolled Students</h3>
-        <p class="text-3xl font-bold text-slate-800">{{ total_students|default:"0" }}</p>
+        <div>
+            <h4 class="text-3xl font-bold text-slate-900 mb-1">{{ total_students|default:"0" }}</h4>
+            <p class="text-sm font-medium text-slate-500">Enrolled Students</p>
+        </div>
     </div>
 
     <!-- Stat Card: Active Assignments -->
-    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
-                <i data-lucide="file-text" class="w-6 h-6"></i>
+            <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                <i data-lucide="file-text" class="w-6 h-6 text-amber-600"></i>
             </div>
         </div>
-        <h3 class="text-slate-500 font-medium mb-1">Active Assignments</h3>
-        <p class="text-3xl font-bold text-slate-800">{{ active_assignments|default:"0" }}</p>
+        <div>
+            <h4 class="text-3xl font-bold text-slate-900 mb-1">{{ active_assignments|default:"0" }}</h4>
+            <p class="text-sm font-medium text-slate-500">Active Assignments</p>
+        </div>
     </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Recent Assignments Section -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-fade-in-up">
         <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h2 class="text-lg font-bold text-slate-800">Recent Assignments</h2>
-            <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">View All</a>
+            <h3 class="text-lg font-semibold text-slate-900">Recent Assignments</h3>
+            <a href="{% url 'dashboard:faculty_assignments' %}" class="flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                View All <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+            </a>
         </div>
         <div class="p-6">
             {% if recent_assignments %}
@@ -92,9 +109,9 @@
     </div>
 
     <!-- Upcoming Deadlines Example Section -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-fade-in-up" style="animation-duration: 0.7s;">
         <div class="p-6 border-b border-slate-100">
-            <h2 class="text-lg font-bold text-slate-800">Your Courses</h2>
+            <h3 class="text-lg font-semibold text-slate-900">Your Courses</h3>
         </div>
         <div class="p-6">
             {% if faculty_courses %}
