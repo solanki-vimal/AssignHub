@@ -69,3 +69,17 @@ def faculty_create_assignment(request):
         'course_to_batches_json': json.dumps(course_batches_data, cls=DjangoJSONEncoder),
     }
     return render(request, 'dashboard/faculty/create_assignment.html', context)
+
+from django.shortcuts import get_object_or_404
+
+@login_required
+def faculty_view_assignment(request, pk):
+    if request.user.role != 'faculty':
+        return redirect('home')
+        
+    assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
+    
+    context = {
+        'assignment': assignment,
+    }
+    return render(request, 'dashboard/faculty/assignment_detail.html', context)

@@ -80,7 +80,7 @@
                 </div>
 
                 <div class="flex items-center gap-2 relative">
-                    <a href="#">
+                    <a href="{% url 'dashboard:faculty_view_assignment' assignment.pk %}">
                         <button class="flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-50">
                             <i data-lucide="eye" class="w-4 h-4"></i> View
                         </button>
@@ -119,5 +119,5 @@
     </div>
     {% endfor %}
 </div>
-<script src="{% static 'js/faculty_assignments.js' %}"></script>
+<script src="{% static 'js/faculty_assignments.js' %}?v=1.1"></script>
 {% endblock %}
