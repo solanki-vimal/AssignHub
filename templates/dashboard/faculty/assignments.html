@@ -44,7 +44,7 @@
 <!-- Assignments List -->
 <div id="assignments-list" class="space-y-4">
     {% for assignment in assignments %}
-    <div class="assignment-card bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all p-6 animate-fade-in-up" style="animation-delay: 0.2s;" data-title="{{ assignment.title|lower }}" data-course="{{ assignment.course.code|lower }}" data-status="{% if assignment.published %}active{% else %}closed{% endif %}">
+    <div class="assignment-card relative hover:z-50 focus-within:z-50 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all p-6 animate-fade-in-up" style="animation-delay: 0.2s;" data-title="{{ assignment.title|lower }}" data-course="{{ assignment.course.code|lower }}" data-status="{% if assignment.published %}active{% else %}closed{% endif %}">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
@@ -85,11 +85,11 @@
                             <i data-lucide="eye" class="w-4 h-4"></i> View
                         </button>
                     </a>
-                    <div class="relative">
-                        <button onclick="document.getElementById('action-menu-{{ assignment.id }}').classList.toggle('hidden')" class="p-1.5 hover:bg-slate-50 rounded-md text-slate-500 transition-colors">
+                    <div class="relative z-20">
+                        <button onclick="document.getElementById('action-menu-{{ assignment.id }}').classList.toggle('hidden')" class="p-1.5 hover:bg-slate-50 rounded-md text-slate-500 transition-colors focus:outline-none">
                             <i data-lucide="more-vertical" class="w-4 h-4"></i>
                         </button>
-                        <div id="action-menu-{{ assignment.id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 z-10 p-1">
+                        <div id="action-menu-{{ assignment.id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 z-50 p-1">
                             <a href="{% url 'dashboard:faculty_edit_assignment' assignment.pk %}">
                                 <button class="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i> Edit Details
@@ -98,13 +98,19 @@
                             <button class="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
                                 <i data-lucide="calendar-plus" class="w-4 h-4"></i> Extend Deadline
                             </button>
-                            <button class="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
-                                <i data-lucide="eye-off" class="w-4 h-4"></i> Unpublish
-                            </button>
+                            <form action="{% url 'dashboard:faculty_toggle_publish' assignment.pk %}" method="POST" onsubmit="return confirm('Are you sure you want to {% if assignment.published %}unpublish{% else %}publish{% endif %} this assignment?');">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                    <i data-lucide="{% if assignment.published %}eye-off{% else %}eye{% endif %}" class="w-4 h-4"></i> {% if assignment.published %}Unpublish{% else %}Publish{% endif %}
+                                </button>
+                            </form>
                             <div class="h-px bg-slate-100 my-1"></div>
-                            <button class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
-                            </button>
+                            <form action="{% url 'dashboard:faculty_delete_assignment' assignment.pk %}" method="POST" onsubmit="return confirm('WARNING: Are you sure you want to delete \'{{ assignment.title }}\'? This action cannot be undone and will delete all associated student submissions.');">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
