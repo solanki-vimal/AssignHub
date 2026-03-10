@@ -83,3 +83,56 @@ def faculty_view_assignment(request, pk):
         'assignment': assignment,
     }
     return render(request, 'dashboard/faculty/assignment_detail.html', context)
+@login_required
+def faculty_edit_assignment(request, pk):
+    if request.user.role != 'faculty':
+        return redirect('home')
+        
+    assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
+    
+    if request.method == 'POST':
+        form = AssignmentForm(request.POST, instance=assignment, faculty=request.user)
+        if form.is_valid():
+            try:
+                form.save()
+                
+                # Handle NEW file attachments (do not delete old ones yet)
+                remove_ids = request.POST.getlist('remove_attachments')
+                if remove_ids:
+                    AssignmentAttachment.objects.filter(id__in=remove_ids, assignment=assignment).delete()
+                    
+                files = request.FILES.getlist('attachments')
+                for f in files:
+                    AssignmentAttachment.objects.create(assignment=assignment, file=f)
+                
+                messages.success(request, f"Assignment '{assignment.title}' updated successfully.")
+                return redirect('dashboard:faculty_view_assignment', pk=assignment.pk)
+            except Exception as e:
+                messages.error(request, f"Error updating assignment: {str(e)}")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = AssignmentForm(instance=assignment, faculty=request.user)
+                
+    # Get courses for batch filtering and display
+    faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False).annotate(
+        students_count=Count('students', distinct=True)
+    ).prefetch_related('batches')
+    
+    # Serialize course-to-batches mapping for JavaScript
+    course_batches_data = {}
+    for course in faculty_courses:
+        course_batches_data[str(course.id)] = [
+            {"id": str(batch.id), "name": f"{batch.name} ({batch.academic_year})"}
+            for batch in course.batches.all()
+        ]
+    
+    context = {
+        'form': form,
+        'assignment': assignment,
+        'faculty_courses': faculty_courses,
+        'course_to_batches_json': json.dumps(course_batches_data, cls=DjangoJSONEncoder),
+        'is_edit': True,
+    }
+    # We can reuse the create assignment template by making it slightly dynamic
+    return render(request, 'dashboard/faculty/create_assignment.html', context)

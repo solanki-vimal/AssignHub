@@ -12,7 +12,7 @@
 
 {% block header_actions %}
 <div class="flex items-center gap-3">
-    <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm">
+    <a href="{% url 'dashboard:faculty_edit_assignment' assignment.pk %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm">
         <i data-lucide="edit-3" class="w-4 h-4"></i>
         Edit
     </a>

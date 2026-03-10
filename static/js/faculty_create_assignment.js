@@ -85,10 +85,13 @@ window.addEventListener('load', () => {
     // File Input Feedback
     const fileInput = document.querySelector('input[type="file"][name="attachments"]');
     if (fileInput) {
+        // Cache original text so it restores correctly whether in Create or Edit mode
+        const dropzoneText = document.getElementById('dropzone-text');
+        const defaultText = dropzoneText ? dropzoneText.textContent : 'Click to upload files';
+
         fileInput.addEventListener('change', (e) => {
             const files = e.target.files;
             let feedback = document.getElementById('file-upload-feedback');
-            const dropzoneText = document.querySelector('label[for="attachments"] p.font-medium, label p.font-medium');
 
             // Create feedback container if not exists
             if (!feedback) {
@@ -106,7 +109,7 @@ window.addEventListener('load', () => {
                 fileInput.parentElement.classList.add('border-indigo-400', 'bg-indigo-50');
             } else {
                 feedback.classList.add('hidden');
-                if (dropzoneText) dropzoneText.textContent = 'Click to upload files';
+                if (dropzoneText) dropzoneText.textContent = defaultText;
                 fileInput.parentElement.classList.remove('border-indigo-400', 'bg-indigo-50');
             }
         });

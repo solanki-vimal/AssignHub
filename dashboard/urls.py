@@ -29,6 +29,7 @@ urlpatterns = [
     path('faculty/assignments/', assignment_views.faculty_assignments, name='faculty_assignments'),
     path('faculty/assignments/create/', assignment_views.faculty_create_assignment, name='faculty_create_assignment'),
     path('faculty/assignments/<int:pk>/', assignment_views.faculty_view_assignment, name='faculty_view_assignment'),
+    path('faculty/assignments/<int:pk>/edit/', assignment_views.faculty_edit_assignment, name='faculty_edit_assignment'),
     path('student/', views.student_dashboard, name='student_dashboard'),
     path('student/courses/', views.student_courses, name='student_courses'),
     path('student/assignments/', views.student_assignments, name='student_assignments'),

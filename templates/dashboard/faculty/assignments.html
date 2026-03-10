@@ -90,9 +90,11 @@
                             <i data-lucide="more-vertical" class="w-4 h-4"></i>
                         </button>
                         <div id="action-menu-{{ assignment.id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 z-10 p-1">
-                            <button class="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i> Edit Details
-                            </button>
+                            <a href="{% url 'dashboard:faculty_edit_assignment' assignment.pk %}">
+                                <button class="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i> Edit Details
+                                </button>
+                            </a>
                             <button class="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
                                 <i data-lucide="calendar-plus" class="w-4 h-4"></i> Extend Deadline
                             </button>
