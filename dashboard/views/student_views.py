@@ -26,10 +26,27 @@ def student_dashboard(request):
     upcoming_assignments = assignments.count()
     recent_assignments = assignments[:5]
 
+    # Calculate completed assignments and average score from Submissions
+    from assignments.models import Submission
+    from django.db.models import Sum
+    
+    submissions = Submission.objects.filter(student=request.user)
+    completed_assignments = submissions.filter(status__in=['submitted', 'late', 'evaluated']).count()
+    
+    evaluated_submissions = submissions.filter(status='evaluated', marks_obtained__isnull=False)
+    if evaluated_submissions.exists():
+        total_obtained = sum(s.marks_obtained for s in evaluated_submissions)
+        total_max = sum(s.assignment.max_marks for s in evaluated_submissions)
+        average_score = round((total_obtained / total_max) * 100) if total_max > 0 else "--"
+    else:
+        average_score = "--"
+
     context = {
         'total_courses': total_courses,
         'upcoming_assignments': upcoming_assignments,
         'recent_assignments': recent_assignments,
+        'completed_assignments': completed_assignments,
+        'average_score': average_score,
     }
     return render(request, 'dashboard/student/dashboard.html', context)
 

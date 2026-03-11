@@ -15,18 +15,57 @@ def faculty_submission_list(request, assignment_pk):
 
     assignment = get_object_or_404(Assignment, pk=assignment_pk, created_by=request.user)
 
-    submissions = Submission.objects.filter(
-        assignment=assignment
-    ).select_related('student').prefetch_related('files').order_by('student__first_name')
-
-    submitted_count = submissions.filter(status__in=['submitted', 'late', 'evaluated']).count()
-    pending_count = submissions.filter(status='pending').count()
-    evaluated_count = submissions.filter(status='evaluated').count()
-    total_students = assignment.batch.students.count() if assignment.batch else 0
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    enrolled_students = User.objects.filter(
+        role='student',
+        enrolled_batches=assignment.batch,
+        is_active=True
+    ).distinct().order_by('first_name', 'email')
+    
+    actual_submissions = {
+        s.student_id: s for s in Submission.objects.filter(assignment=assignment).prefetch_related('files')
+    }
+    
+    combined_submissions = []
+    submitted_count = 0
+    evaluated_count = 0
+    late_count = 0
+    
+    for student in enrolled_students:
+        sub = actual_submissions.get(student.id)
+        if sub:
+            combined_submissions.append({
+                'student': student,
+                'submission': sub,
+                'status': sub.status,
+                'files_count': sub.files.count(),
+                'marks': sub.marks_obtained,
+                'pk': sub.pk
+            })
+            if sub.status == 'submitted':
+                submitted_count += 1
+            elif sub.status == 'evaluated':
+                evaluated_count += 1
+            elif sub.status == 'late':
+                late_count += 1
+        else:
+            combined_submissions.append({
+                'student': student,
+                'submission': None,
+                'status': 'pending',
+                'files_count': 0,
+                'marks': None,
+                'pk': None
+            })
+            
+    total_students = len(combined_submissions)
+    pending_count = total_students - (submitted_count + evaluated_count + late_count)
 
     context = {
         'assignment': assignment,
-        'submissions': submissions,
+        'combined_submissions': combined_submissions,
         'submitted_count': submitted_count,
         'pending_count': pending_count,
         'evaluated_count': evaluated_count,

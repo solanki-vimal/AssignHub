@@ -107,6 +107,39 @@ def faculty_students(request):
         enrolled_batches__is_archived=False
     ).distinct().prefetch_related('enrolled_batches', 'enrolled_batches__courses')
     
+    from assignments.models import Assignment, Submission
+    for student in enrolled_students:
+        student_batches = student.enrolled_batches.all()
+        
+        total_assignments = Assignment.objects.filter(
+            created_by=request.user,
+            published=True,
+            batch__in=student_batches
+        ).count()
+        
+        submissions = Submission.objects.filter(
+            student=student,
+            assignment__created_by=request.user,
+            assignment__published=True,
+            assignment__batch__in=student_batches
+        )
+        
+        completed = submissions.filter(status__in=['submitted', 'late', 'evaluated']).count()
+        progress_pct = round((completed / total_assignments) * 100) if total_assignments > 0 else 0
+        
+        evaluated_subs = submissions.filter(status='evaluated', marks_obtained__isnull=False)
+        if evaluated_subs.exists():
+            total_obtained = sum(s.marks_obtained for s in evaluated_subs)
+            total_max = sum(s.assignment.max_marks for s in evaluated_subs)
+            avg_score = round((total_obtained / total_max) * 100) if total_max > 0 else "--"
+        else:
+            avg_score = "--"
+            
+        student.faculty_total_assignments = total_assignments
+        student.faculty_completed_assignments = completed
+        student.faculty_progress_pct = progress_pct
+        student.faculty_avg_score = avg_score
+    
     context = {
         'students': enrolled_students,
         'faculty_courses': faculty_courses,

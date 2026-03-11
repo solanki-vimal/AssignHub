@@ -95,12 +95,12 @@
                     <td class="p-4">
                         <div class="flex items-center gap-3">
                             <div class="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                <div class="h-full bg-blue-600 rounded-full" style="width: 0%"></div>
+                                <div class="h-full bg-blue-600 rounded-full" style="width: {{ student.faculty_progress_pct }}%"></div>
                             </div>
-                            <span class="text-xs text-slate-600">0/0</span>
+                            <span class="text-xs text-slate-600">{{ student.faculty_completed_assignments }}/{{ student.faculty_total_assignments }}</span>
                         </div>
                     </td>
-                    <td class="p-4 text-blue-600 font-semibold text-sm">0%</td>
+                    <td class="p-4 text-blue-600 font-semibold text-sm">{% if student.faculty_avg_score == '--' %}--{% else %}{{ student.faculty_avg_score }}%{% endif %}</td>
                     <td class="p-4 text-right">
                         <button class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded transition-colors"><i data-lucide="mail" class="w-4 h-4"></i></button>
                     </td>

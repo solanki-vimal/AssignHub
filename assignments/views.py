@@ -20,6 +20,28 @@ def faculty_assignments(request):
     assignments = Assignment.objects.filter(
         created_by=request.user
     ).select_related('course', 'batch').prefetch_related('attachments').order_by('-created_at')
+    
+    # Compute stats for each assignment
+    from .models import Submission
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    for assignment in assignments:
+        # Total students assigned to this assignment (via its batch)
+        total_students = User.objects.filter(
+            role='student',
+            enrolled_batches=assignment.batch,
+            is_active=True
+        ).distinct().count()
+        
+        assignment.submitted_count = Submission.objects.filter(assignment=assignment, status='submitted').count()
+        assignment.evaluated_count = Submission.objects.filter(assignment=assignment, status='evaluated').count()
+        assignment.late_count = Submission.objects.filter(assignment=assignment, status='late').count()
+        
+        # Pending is everyone who hasn't submitted/evaluated yet
+        completed_count = assignment.submitted_count + assignment.evaluated_count + assignment.late_count
+        assignment.pending_count = max(0, total_students - completed_count)
+        
     faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False)
     
     context = {
@@ -83,12 +105,20 @@ def faculty_view_assignment(request, pk):
     assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
 
     from assignments.models import Submission
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
+    total_students = User.objects.filter(
+        role='student',
+        enrolled_batches=assignment.batch,
+        is_active=True
+    ).distinct().count()
+
     submitted_count = Submission.objects.filter(
         assignment=assignment, status__in=['submitted', 'late', 'evaluated']
     ).count()
-    pending_count = Submission.objects.filter(
-        assignment=assignment, status='pending'
-    ).count()
+    
+    pending_count = max(0, total_students - submitted_count)
     
     context = {
         'assignment': assignment,

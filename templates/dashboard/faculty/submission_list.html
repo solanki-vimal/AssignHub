@@ -46,37 +46,37 @@
         <h3 class="text-lg font-semibold text-slate-900">All Submissions</h3>
     </div>
     <div class="divide-y divide-slate-100">
-        {% for submission in submissions %}
+        {% for item in combined_submissions %}
         <div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
             <div class="flex items-center gap-4">
                 <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm shrink-0">
-                    {{ submission.student.first_name|make_list|first|upper|default:"S" }}
+                    {{ item.student.first_name|make_list|first|upper|default:"S" }}
                 </div>
                 <div>
-                    <p class="font-semibold text-slate-900">{{ submission.student.get_full_name|default:submission.student.email }}</p>
+                    <p class="font-semibold text-slate-900">{{ item.student.get_full_name|default:item.student.email }}</p>
                     <div class="flex items-center gap-2 mt-0.5">
-                        <span class="text-xs text-slate-500">{{ submission.files.count }} file{{ submission.files.count|pluralize }}</span>
-                        {% if submission.status == 'pending' %}
+                        <span class="text-xs text-slate-500">{% if item.files_count > 0 %}{{ item.files_count }} file{{ item.files_count|pluralize }}{% else %}No files{% endif %}</span>
+                        {% if item.status == 'pending' %}
                             <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-semibold">Pending</span>
-                        {% elif submission.status == 'submitted' %}
+                        {% elif item.status == 'submitted' %}
                             <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">Submitted</span>
-                        {% elif submission.status == 'late' %}
+                        {% elif item.status == 'late' %}
                             <span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-semibold">Late</span>
-                        {% elif submission.status == 'evaluated' %}
+                        {% elif item.status == 'evaluated' %}
                             <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">
-                                Evaluated — {{ submission.marks_obtained|default:"0" }}/{{ assignment.max_marks }}
+                                Evaluated — {{ item.marks|default:"0" }}/{{ assignment.max_marks }}
                             </span>
                         {% endif %}
                     </div>
                 </div>
             </div>
-            {% if submission.files.count > 0 %}
-            <a href="{% url 'dashboard:faculty_submission_detail' submission.pk %}"
+            {% if item.files_count > 0 %}
+            <a href="{% url 'dashboard:faculty_submission_detail' item.pk %}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors shrink-0">
                 <i data-lucide="eye" class="w-4 h-4"></i> Review
             </a>
             {% else %}
-            <span class="text-xs text-slate-400 italic shrink-0">No files submitted</span>
+            <span class="text-xs text-slate-400 italic shrink-0">Not submitted</span>
             {% endif %}
         </div>
         {% empty %}
