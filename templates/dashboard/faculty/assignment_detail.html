@@ -121,7 +121,7 @@
             </div>
         </div>
 
-        <!-- Submission Stats (Placeholder for Phase 4) -->
+        <!-- Submission Analytics -->
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 text-center group cursor-pointer hover:border-indigo-200 transition-colors relative overflow-hidden">
             <div class="absolute inset-0 bg-indigo-50/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <h3 class="text-lg font-semibold text-slate-800 mb-4 relative z-10 flex text-left items-center gap-2">
@@ -130,19 +130,20 @@
             
             <div class="relative z-10 grid grid-cols-2 gap-4">
                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                   <div class="text-3xl font-black text-slate-800 mb-1">0</div>
+                   <div class="text-3xl font-black text-blue-600 mb-1">{{ submitted_count }}</div>
                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Submitted</div>
                </div>
                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                   <div class="text-3xl font-black text-slate-800 mb-1">0</div>
+                   <div class="text-3xl font-black text-amber-500 mb-1">{{ pending_count }}</div>
                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pending</div>
                </div>
             </div>
             
-            <button class="mt-4 w-full py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors relative z-10">
-                <i data-lucide="users" class="w-4 h-4 text-indigo-500"></i>
+            <a href="{% url 'dashboard:faculty_submission_list' assignment.pk %}"
+               class="mt-4 w-full py-2.5 bg-indigo-600 text-white rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors relative z-10">
+                <i data-lucide="users" class="w-4 h-4"></i>
                 View All Submissions
-            </button>
+            </a>
         </div>
 
         <!-- Settings Summary -->

@@ -79,21 +79,32 @@ def student_assignments(request):
     if request.user.role != 'student':
         return redirect('home')
         
-    # Fetch assignments from enrolled batches
-    from assignments.models import Assignment
-    assignments = Assignment.objects.filter(
+    from assignments.models import Assignment, Submission
+    assignments_qs = Assignment.objects.filter(
         batch__in=request.user.enrolled_batches.all(),
         published=True
     ).select_related('course', 'batch').order_by('due_date')
     
-    # Also fetch assignments from directly enrolled courses if applicable
-    # (Assuming batches are the primary association, but checking courses as backup)
+    # Also include assignments from directly enrolled courses
     direct_course_assignments = Assignment.objects.filter(
         course__in=request.user.enrolled_courses.all(),
         published=True
-    ).exclude(id__in=assignments).select_related('course', 'batch')
+    ).exclude(id__in=assignments_qs).select_related('course', 'batch')
     
-    all_assignments = list(assignments) + list(direct_course_assignments)
+    all_assignments = list(assignments_qs) + list(direct_course_assignments)
+    
+    # Fetch all submissions for this student in one query
+    submission_map = {
+        s.assignment_id: s.status
+        for s in Submission.objects.filter(
+            student=request.user,
+            assignment_id__in=[a.id for a in all_assignments]
+        )
+    }
+    
+    # Attach the submission_status to each assignment object
+    for assignment in all_assignments:
+        assignment.submission_status = submission_map.get(assignment.id, 'pending')
     
     context = {
         'assignments': all_assignments,

@@ -69,9 +69,13 @@ class Submission(models.Model):
     def __str__(self):
         return f"{self.student.username} - {self.assignment.title}"
 
+def submission_file_path(instance, filename):
+    """Store files in a structured path: submissions/assignment_{id}/student_{id}/filename"""
+    return f"submissions/assignment_{instance.submission.assignment_id}/student_{instance.submission.student_id}/{filename}"
+
 class SubmissionFile(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='files')
-    file = models.FileField(upload_to='submissions/')
+    file = models.FileField(upload_to=submission_file_path)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

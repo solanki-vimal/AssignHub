@@ -81,9 +81,19 @@ def faculty_view_assignment(request, pk):
         return redirect('home')
         
     assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
+
+    from assignments.models import Submission
+    submitted_count = Submission.objects.filter(
+        assignment=assignment, status__in=['submitted', 'late', 'evaluated']
+    ).count()
+    pending_count = Submission.objects.filter(
+        assignment=assignment, status='pending'
+    ).count()
     
     context = {
         'assignment': assignment,
+        'submitted_count': submitted_count,
+        'pending_count': pending_count,
     }
     return render(request, 'dashboard/faculty/assignment_detail.html', context)
 

@@ -1,0 +1,93 @@
+{% extends 'layouts/base_faculty.html' %}
+{% load static %}
+
+{% block title %}Submissions - {{ assignment.title }}{% endblock %}
+{% block header_title %}Student Submissions{% endblock %}
+
+{% block back_button %}
+<a href="{% url 'dashboard:faculty_view_assignment' assignment.pk %}" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors mr-2">
+    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-6 animate-fade-in-up">
+    <div class="flex items-center gap-2 mb-1">
+        <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-semibold">{{ assignment.course.code }}</span>
+        <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-xs font-semibold">{{ assignment.batch.name }}</span>
+    </div>
+    <h2 class="text-2xl font-bold text-slate-900">{{ assignment.title }}</h2>
+    <p class="text-slate-500 text-sm mt-1">Due: {{ assignment.due_date|date:"M d, Y, h:i a" }}</p>
+</div>
+
+<!-- Stats Row -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up" style="animation-delay:0.1s;">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-center">
+        <div class="text-3xl font-black text-slate-800">{{ total_students }}</div>
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-1">Total Students</div>
+    </div>
+    <div class="bg-white rounded-2xl border border-blue-100 shadow-sm p-5 text-center">
+        <div class="text-3xl font-black text-blue-600">{{ submitted_count }}</div>
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-1">Submitted</div>
+    </div>
+    <div class="bg-white rounded-2xl border border-amber-100 shadow-sm p-5 text-center">
+        <div class="text-3xl font-black text-amber-500">{{ pending_count }}</div>
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-1">Pending</div>
+    </div>
+    <div class="bg-white rounded-2xl border border-green-100 shadow-sm p-5 text-center">
+        <div class="text-3xl font-black text-green-600">{{ evaluated_count }}</div>
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-1">Evaluated</div>
+    </div>
+</div>
+
+<!-- Submissions Table -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm animate-fade-in-up" style="animation-delay:0.2s;">
+    <div class="p-6 border-b border-slate-100">
+        <h3 class="text-lg font-semibold text-slate-900">All Submissions</h3>
+    </div>
+    <div class="divide-y divide-slate-100">
+        {% for submission in submissions %}
+        <div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm shrink-0">
+                    {{ submission.student.first_name|make_list|first|upper|default:"S" }}
+                </div>
+                <div>
+                    <p class="font-semibold text-slate-900">{{ submission.student.get_full_name|default:submission.student.email }}</p>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-xs text-slate-500">{{ submission.files.count }} file{{ submission.files.count|pluralize }}</span>
+                        {% if submission.status == 'pending' %}
+                            <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-semibold">Pending</span>
+                        {% elif submission.status == 'submitted' %}
+                            <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">Submitted</span>
+                        {% elif submission.status == 'late' %}
+                            <span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-semibold">Late</span>
+                        {% elif submission.status == 'evaluated' %}
+                            <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">
+                                Evaluated — {{ submission.marks_obtained|default:"0" }}/{{ assignment.max_marks }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% if submission.files.count > 0 %}
+            <a href="{% url 'dashboard:faculty_submission_detail' submission.pk %}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors shrink-0">
+                <i data-lucide="eye" class="w-4 h-4"></i> Review
+            </a>
+            {% else %}
+            <span class="text-xs text-slate-400 italic shrink-0">No files submitted</span>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="py-16 text-center">
+            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="inbox" class="w-8 h-8 text-slate-300"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-700 mb-1">No Submissions Yet</h3>
+            <p class="text-slate-500 text-sm">Students haven't submitted anything for this assignment yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
