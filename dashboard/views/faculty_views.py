@@ -48,12 +48,45 @@ def faculty_dashboard(request):
 def faculty_courses(request):
     if request.user.role != 'faculty':
         return redirect('home')
-        
-    # Get courses assigned to this faculty, including prefetching batches
+    
+    User = get_user_model()
+    from assignments.models import Submission
+    
     courses = Course.objects.filter(faculty=request.user, is_archived=False).prefetch_related('batches')
     
+    # Build per-course stats manually (annotations across multi-level joins are complex)
+    course_data = []
+    for course in courses:
+        # Count students enrolled in batches tied to this course (same logic as faculty_students)
+        student_count = User.objects.filter(
+            role='student',
+            enrolled_batches__courses=course,
+            enrolled_batches__is_archived=False
+        ).distinct().count()
+        
+        # Count assignments for this course
+        total_assignments = Assignment.objects.filter(course=course, created_by=request.user).count()
+        active_assignments = Assignment.objects.filter(course=course, created_by=request.user, published=True).count()
+        
+        # Count submissions for this course's assignments
+        total_submissions = Submission.objects.filter(assignment__course=course, assignment__created_by=request.user).count()
+        pending_submissions = Submission.objects.filter(
+            assignment__course=course,
+            assignment__created_by=request.user,
+            status__in=['submitted', 'pending']
+        ).count()
+        
+        course_data.append({
+            'course': course,
+            'student_count': student_count,
+            'total_assignments': total_assignments,
+            'active_assignments': active_assignments,
+            'total_submissions': total_submissions,
+            'pending_submissions': pending_submissions,
+        })
+    
     context = {
-        'courses': courses,
+        'course_data': course_data,
     }
     return render(request, 'dashboard/faculty/courses.html', context)
 
