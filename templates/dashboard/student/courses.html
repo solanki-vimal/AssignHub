@@ -28,7 +28,8 @@
 
 <!-- Course Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up" id="course-grid" style="animation-delay: 0.2s;">
-    {% for course in courses %}
+    {% for item in course_data %}
+    {% with course=item.course %}
     <div class="course-card bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col group" data-search="{{ course.name|lower }} {{ course.code|lower }}">
         <div class="h-32 bg-gradient-to-r from-indigo-500 to-purple-600 relative p-6 flex flex-col justify-end">
             <div class="absolute top-4 right-4">
@@ -55,7 +56,7 @@
                     </div>
                     <div>
                         <div class="text-xs text-slate-500 font-medium">Assignments</div>
-                        <div class="font-bold text-slate-800 text-sm">--</div>
+                        <div class="font-bold text-slate-800 text-sm">{{ item.total_assignments }}</div>
                     </div>
                 </div>
                 <div class="bg-slate-50 rounded-xl p-3 flex items-center gap-3">
@@ -64,7 +65,7 @@
                     </div>
                     <div>
                         <div class="text-xs text-slate-500 font-medium">Progress</div>
-                        <div class="font-bold text-slate-800 text-sm">--%</div>
+                        <div class="font-bold text-slate-800 text-sm">{{ item.progress_pct }}%</div>
                     </div>
                 </div>
             </div>
@@ -74,6 +75,7 @@
             </a>
         </div>
     </div>
+    {% endwith %}
     {% empty %}
     <div class="col-span-1 md:col-span-2 lg:col-span-3 py-16 text-center bg-white rounded-2xl border border-slate-100 border-dashed">
         <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">

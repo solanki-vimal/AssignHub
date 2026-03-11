@@ -37,14 +37,40 @@ def student_dashboard(request):
 def student_courses(request):
     if request.user.role != 'student':
         return redirect('home')
-        
-    # Fetch courses explicitly enrolled or inherited via batch
-    student_courses = request.user.enrolled_courses.filter(is_archived=False)
-    batch_courses = Course.objects.filter(batches__in=request.user.enrolled_batches.all(), is_archived=False)
-    all_courses = (student_courses | batch_courses).distinct().select_related('faculty')
-    
+
+    from assignments.models import Assignment, Submission
+
+    student_courses_qs = request.user.enrolled_courses.filter(is_archived=False)
+    batch_courses_qs = Course.objects.filter(batches__in=request.user.enrolled_batches.all(), is_archived=False)
+    all_courses = (student_courses_qs | batch_courses_qs).distinct().select_related('faculty')
+
+    course_data = []
+    for course in all_courses:
+        total_assignments = Assignment.objects.filter(
+            course=course,
+            published=True,
+            batch__in=request.user.enrolled_batches.all()
+        ).count()
+
+        submitted = Submission.objects.filter(
+            assignment__course=course,
+            assignment__published=True,
+            assignment__batch__in=request.user.enrolled_batches.all(),
+            student=request.user,
+            status__in=['submitted', 'late', 'evaluated']
+        ).count()
+
+        progress_pct = round((submitted / total_assignments) * 100) if total_assignments > 0 else 0
+
+        course_data.append({
+            'course': course,
+            'total_assignments': total_assignments,
+            'submitted': submitted,
+            'progress_pct': progress_pct,
+        })
+
     context = {
-        'courses': all_courses,
+        'course_data': course_data,
     }
     return render(request, 'dashboard/student/courses.html', context)
 
