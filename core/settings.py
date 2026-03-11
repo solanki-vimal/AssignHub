@@ -105,6 +105,10 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
+# Media files (user uploads: assignment attachments, submission files, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Auth helper
 AUTH_USER_MODEL = 'accounts.User'
 
