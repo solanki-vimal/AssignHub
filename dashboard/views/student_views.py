@@ -133,3 +133,32 @@ def student_assignment_detail(request, pk):
         'submission': submission,
     }
     return render(request, 'dashboard/student/assignment_detail.html', context)
+
+
+@login_required
+def student_course_detail(request, pk):
+    if request.user.role != 'student':
+        return redirect('home')
+
+    from django.shortcuts import get_object_or_404
+    from assignments.models import Assignment
+
+    # Ensure the student is actually enrolled in this course (via batch or direct)
+    student_courses = request.user.enrolled_courses.filter(is_archived=False)
+    batch_courses = Course.objects.filter(batches__in=request.user.enrolled_batches.all(), is_archived=False)
+    all_courses = (student_courses | batch_courses).distinct()
+
+    course = get_object_or_404(all_courses, pk=pk)
+
+    # Get published assignments for this course that belong to the student's batches
+    assignments = Assignment.objects.filter(
+        course=course,
+        published=True,
+        batch__in=request.user.enrolled_batches.all()
+    ).prefetch_related('attachments').order_by('due_date')
+
+    context = {
+        'course': course,
+        'assignments': assignments,
+    }
+    return render(request, 'dashboard/student/course_detail.html', context)
