@@ -54,8 +54,16 @@ def profile_view(request):
         
     batches = Batch.objects.filter(is_archived=False).order_by('name')
     
+    if user.role == 'student':
+        layout_name = 'layouts/base_student.html'
+    elif user.role == 'faculty':
+        layout_name = 'layouts/base_faculty.html'
+    else:
+        layout_name = 'layouts/base_admin.html'
+    
     context = {
         'departments': DEPARTMENTS,
         'batches': batches,
+        'layout_name': layout_name,
     }
     return render(request, 'dashboard/profile.html', context)
