@@ -77,8 +77,15 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'assignhub',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
 }
 
@@ -114,3 +121,13 @@ AUTH_USER_MODEL = 'accounts.User'
 
 # CSRF Settings
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+
+# -- Patch for XAMPP MariaDB version check in Django 6.0+ --
+import django.db.backends.mysql.base as mysql_base
+if hasattr(mysql_base, 'DatabaseWrapper'):
+    mysql_base.DatabaseWrapper.check_database_version_supported = lambda self: None
+
+import django.db.backends.mysql.features as mysql_features
+if hasattr(mysql_features, 'DatabaseFeatures'):
+    mysql_features.DatabaseFeatures.can_return_columns_from_insert = False
+    mysql_features.DatabaseFeatures.can_return_rows_from_bulk_insert = False
