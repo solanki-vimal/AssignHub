@@ -6,7 +6,6 @@ class CourseAdmin(admin.ModelAdmin):
     list_display = ('code', 'name', 'semester', 'department', 'is_active')
     list_filter = ('semester', 'department', 'is_active')
     search_fields = ('code', 'name')
-    filter_horizontal = ('students',)
 
 @admin.register(Batch)
 class BatchAdmin(admin.ModelAdmin):

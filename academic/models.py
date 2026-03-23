@@ -17,12 +17,6 @@ class Course(models.Model):
         limit_choices_to={'role': 'faculty'},
         related_name='assigned_courses'
     )
-    students = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        limit_choices_to={'role': 'student'},
-        related_name='enrolled_courses',
-        blank=True
-    )
 
     def __str__(self):
         return f"{self.code} - {self.name}"
