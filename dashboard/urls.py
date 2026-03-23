@@ -11,7 +11,6 @@ urlpatterns = [
     path('admin/courses/<int:pk>/edit/', views.admin_course_edit, name='admin_course_edit'),
     path('admin/courses/<int:pk>/delete/', views.admin_course_delete, name='admin_course_delete'),
     path('admin/courses/<int:pk>/archive/', views.admin_course_archive, name='admin_course_archive'),
-    path('admin/courses/<int:pk>/students/', views.admin_manage_course_students, name='admin_manage_course_students'),
     
     path('admin/batches/', views.admin_batches, name='admin_batches'),
     path('admin/batches/<int:pk>/edit/', views.admin_batch_edit, name='admin_batch_edit'),

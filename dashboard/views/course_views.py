@@ -143,37 +143,3 @@ def admin_course_archive(request, pk):
         
     return redirect(request.META.get('HTTP_REFERER', 'dashboard:admin_courses'))
 
-@login_required
-def admin_manage_course_students(request, pk):
-    if request.user.role != 'admin':
-        return redirect('home')
-        
-    User = get_user_model()
-    course = get_object_or_404(Course, pk=pk)
-    
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        student_id = request.POST.get('student_id')
-        
-        if student_id:
-            student = get_object_or_404(User, pk=student_id, role='student')
-            if action == 'add':
-                course.students.add(student)
-                messages.success(request, f"Added student {student.first_name} to {course.name}.")
-                ActivityLog.objects.create(user=request.user, action='update', action_name='Course Enrollment', details=f'Added {student.email} to {course.code}')
-            elif action == 'remove':
-                course.students.remove(student)
-                messages.success(request, f"Removed student {student.first_name} from {course.name}.")
-                ActivityLog.objects.create(user=request.user, action='update', action_name='Course Enrollment', details=f'Removed {student.email} from {course.code}')
-                
-        return redirect('dashboard:admin_manage_course_students', pk=pk)
-        
-    enrolled_students = course.students.all().order_by('first_name')
-    available_students = User.objects.filter(role='student').exclude(enrolled_courses=course).order_by('first_name')
-    
-    context = {
-        'course': course,
-        'enrolled_students': enrolled_students,
-        'available_students': available_students
-    }
-    return render(request, 'dashboard/admin/manage_course_students.html', context)
