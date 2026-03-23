@@ -52,7 +52,6 @@
                                 <th class="p-4 text-sm font-semibold text-slate-600">Course</th>
                                 <th class="p-4 text-sm font-semibold text-slate-600">Semester</th>
                                 <th class="p-4 text-sm font-semibold text-slate-600">Faculty</th>
-                                <th class="p-4 text-sm font-semibold text-slate-600">Students</th>
                                 <th class="p-4 text-sm font-semibold text-slate-600">Status</th>
                                 <th class="p-4 text-sm font-semibold text-slate-600 text-right">Actions</th>
                             </tr>
@@ -74,7 +73,6 @@
                                         {% if course.faculty %}<span class="text-slate-600 text-sm">{{ course.faculty.first_name|default:course.faculty.username }} {{ course.faculty.last_name }}</span>{% else %}<span class="text-xs text-slate-400 italic">Not Assigned</span>{% endif %}
                                     </div>
                                 </td>
-                                <td class="p-4 font-semibold text-slate-900">{{ course.students.count|default:"0" }}</td>
                                 <td class="p-4">
                                     {% if course.is_active %}
                                     <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold">Active</span>
@@ -84,9 +82,6 @@
                                 </td>
                                 <td class="p-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        <a href="{% url 'dashboard:admin_manage_course_students' course.id %}" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors" title="Manage Students">
-                                            <i data-lucide="users" class="w-4 h-4"></i>
-                                        </a>
                                         <button onclick="openEditModal('{{ course.id }}', '{{ course.code }}', '{{ course.name|escapejs }}', '{{ course.semester }}', '{{ course.department }}', '{{ course.is_active }}', '{% if course.faculty %}{{ course.faculty.id }}{% endif %}');" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors" title="Edit Course">
                                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                                         </button>
