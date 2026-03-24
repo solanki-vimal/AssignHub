@@ -75,96 +75,40 @@
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <!-- Recent Activity -->
-    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm animate-fade-in-up">
-        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-slate-900">Recent Activity</h3>
-            <a href="{% url 'dashboard:admin_logs' %}"
-                class="flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium">
-                View All <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
-            </a>
-        </div>
-        <div class="divide-y divide-slate-100">
-            {% for log in recent_logs %}
-            <div class="p-4 hover:bg-slate-50 transition-colors">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        {% if log.action == 'auth' %}
-                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
-                            <i data-lucide="log-in" class="w-5 h-5"></i>
-                        </div>
-                        {% elif log.action == 'create' %}
-                        <div
-                            class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
-                            <i data-lucide="plus" class="w-5 h-5"></i>
-                        </div>
-                        {% elif log.action == 'update' %}
-                        <div
-                            class="w-10 h-10 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center">
-                            <i data-lucide="edit-2" class="w-5 h-5"></i>
-                        </div>
-                        {% elif log.action == 'delete' %}
-                        <div class="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
-                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                        </div>
-                        {% else %}
-                        <div
-                            class="w-10 h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center">
-                            <i data-lucide="activity" class="w-5 h-5"></i>
-                        </div>
-                        {% endif %}
-                        <div>
-                            <p class="font-medium text-slate-900">{{ log.action_name }}</p>
-                            <p class="text-sm text-slate-500">{% if log.user %}{{ log.user.email }} • {{
-                                log.user.get_role_display }}{% else %}System{% endif %}</p>
-                        </div>
+    <!-- User Distribution (Full Width now or centered) -->
+    <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <h3 class="text-lg font-semibold text-slate-900 mb-4 text-center">User Distribution</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-slate-600 font-medium">Students</span>
+                    <span class="font-bold text-slate-900">{{ student_count }}</span>
+                </div>
+                <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-teal-500 rounded-full transition-all duration-1000"
+                        style="--width: {{ student_percent|default:0 }}%; width: var(--width);">
                     </div>
-                    <span class="text-xs text-slate-400">{{ log.timestamp|timesince }} ago</span>
                 </div>
             </div>
-            {% empty %}
-            <div class="p-4 text-center text-slate-500">No recent activity</div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- System Stats Side Panel -->
-    <div class="space-y-6 animate-fade-in-up" style="animation-duration: 0.7s;">
-        <!-- User Distribution -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-slate-900 mb-4">User Distribution</h3>
-            <div class="space-y-4">
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-slate-600">Students</span>
-                        <span class="font-semibold text-slate-900">{{ student_count }}</span>
-                    </div>
-                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-teal-500 rounded-full"
-                            style="--width: {{ student_percent|default:0 }}%; width: var(--width);">
-                        </div>
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-slate-600 font-medium">Faculty</span>
+                    <span class="font-bold text-slate-900">{{ faculty_count }}</span>
+                </div>
+                <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                        style="--width: {{ faculty_percent|default:0 }}%; width: var(--width);">
                     </div>
                 </div>
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-slate-600">Faculty</span>
-                        <span class="font-semibold text-slate-900">{{ faculty_count }}</span>
-                    </div>
-                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-500 rounded-full"
-                            style="--width: {{ faculty_percent|default:0 }}%; width: var(--width);">
-                        </div>
-                    </div>
+            </div>
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-slate-600 font-medium">Admins</span>
+                    <span class="font-bold text-slate-900">{{ admin_count }}</span>
                 </div>
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-slate-600">Admins</span>
-                        <span class="font-semibold text-slate-900">{{ admin_count }}</span>
-                    </div>
-                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-indigo-500 rounded-full"
-                            style="--width: {{ admin_percent|default:0 }}%; width: var(--width);">
-                        </div>
+                <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-500 rounded-full transition-all duration-1000"
+                        style="--width: {{ admin_percent|default:0 }}%; width: var(--width);">
                     </div>
                 </div>
             </div>

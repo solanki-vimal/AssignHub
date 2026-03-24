@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from academic.models import Course
 from academic.constants import DEPARTMENTS, SEMESTERS
-from dashboard.models import ActivityLog
+from academic.constants import DEPARTMENTS, SEMESTERS
 
 @login_required
 def admin_courses(request):
@@ -40,12 +40,6 @@ def admin_courses(request):
                     faculty=faculty
                 )
                 messages.success(request, f"Course {code} added successfully.")
-                ActivityLog.objects.create(
-                    user=request.user,
-                    action='create',
-                    action_name='Course Created',
-                    details=f'Course {code} - {name} was created.'
-                )
             except Exception as e:
                 messages.error(request, f"Error creating course: {str(e)}")
         return redirect('dashboard:admin_courses')
@@ -92,12 +86,6 @@ def admin_course_edit(request, pk):
                 course.save()
                 
                 messages.success(request, f"Course {code} updated successfully.")
-                ActivityLog.objects.create(
-                    user=request.user,
-                    action='update',
-                    action_name='Course Updated',
-                    details=f'Course {code} details were updated.'
-                )
             except Exception as e:
                 messages.error(request, f"Error updating course: {str(e)}")
                 
@@ -114,13 +102,6 @@ def admin_course_delete(request, pk):
         code = course.code
         course.delete()
         messages.success(request, f"Course {code} deleted successfully.")
-        ActivityLog.objects.create(
-            user=request.user,
-            action='delete',
-            action_name='Course Deleted',
-            details=f'Course {code} was permanently deleted.'
-        )
-        
     return redirect('dashboard:admin_courses')
 
 @login_required
@@ -134,11 +115,9 @@ def admin_course_archive(request, pk):
         if action == 'unarchive':
             course.is_archived = False
             messages.success(request, f"Course {course.code} unarchived successfully.")
-            ActivityLog.objects.create(user=request.user, action='update', action_name='Course Unarchived', details=f'{course.code}')
         else:
             course.is_archived = True
             messages.success(request, f"Course {course.code} archived successfully.")
-            ActivityLog.objects.create(user=request.user, action='update', action_name='Course Archived', details=f'{course.code}')
         course.save()
         
     return redirect(request.META.get('HTTP_REFERER', 'dashboard:admin_courses'))

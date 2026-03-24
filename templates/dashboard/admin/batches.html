@@ -62,8 +62,8 @@
                             <a href="{% url 'dashboard:admin_manage_batch_courses' batch.id %}" class="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-slate-100 rounded transition-colors" title="Manage Courses">
                                 <i data-lucide="book-open" class="w-4 h-4"></i>
                             </a>
-                             <a href="javascript:void(0)" 
-                                onclick="openEditModal('{{ batch.id }}', '{{ batch.name|escapejs }}', '{{ batch.academic_year|escapejs }}', '{{ batch.is_active }}', '{% if batch.semester %}{{ batch.semester }}{% endif %}');"
+                             <a href="{% url 'dashboard:admin_batch_edit' batch.id %}" 
+                                onclick="openEditModal('{{ batch.id }}', '{{ batch.name|escapejs }}', '{{ batch.academic_year|escapejs }}', '{{ batch.is_active }}', '{% if batch.semester %}{{ batch.semester }}{% endif %}'); return false;"
                                 class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors" 
                                 title="Edit Batch">
                                 <i data-lucide="edit-2" class="w-4 h-4"></i>

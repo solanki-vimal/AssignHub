@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from academic.models import Course, Batch
 from academic.constants import SEMESTERS
-from dashboard.models import ActivityLog
 
 @login_required
 def admin_batches(request):
@@ -20,12 +19,6 @@ def admin_batches(request):
             try:
                 batch = form.save()
                 messages.success(request, f"Batch {batch.name} added successfully.")
-                ActivityLog.objects.create(
-                    user=request.user,
-                    action='create',
-                    action_name='Batch Created',
-                    details=f'Batch {batch.name} ({batch.academic_year}) was created.'
-                )
             except Exception as e:
                 messages.error(request, f"Error creating batch: {str(e)}")
             return redirect('dashboard:admin_batches')
@@ -68,12 +61,6 @@ def admin_batch_edit(request, pk):
             try:
                 form.save()
                 messages.success(request, f"Batch {batch.name} updated successfully.")
-                ActivityLog.objects.create(
-                    user=request.user,
-                    action='update',
-                    action_name='Batch Updated',
-                    details=f'Batch {batch.name} details were updated.'
-                )
             except Exception as e:
                 messages.error(request, f"Error updating batch: {str(e)}")
         else:

@@ -6,7 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from academic.models import Course, Batch
 from academic.constants import DEPARTMENTS
-from dashboard.models import ActivityLog, SystemSettings
+from academic.models import Course, Batch
+from academic.constants import DEPARTMENTS
 
 @login_required
 def admin_dashboard(request):
@@ -24,8 +25,6 @@ def admin_dashboard(request):
     faculty_percent = round((faculty_count / total_users * 100)) if total_users > 0 else 0
     admin_percent = round((admin_count / total_users * 100)) if total_users > 0 else 0
     
-    recent_logs = ActivityLog.objects.select_related('user').order_by('-timestamp')[:5]
-
     context = {
         'total_users': total_users,
         'student_count': student_count,
@@ -36,7 +35,6 @@ def admin_dashboard(request):
         'admin_percent': admin_percent,
         'active_courses': Course.objects.filter(is_archived=False).count(),
         'total_batches': Batch.objects.filter(is_archived=False).count(),
-        'recent_logs': recent_logs,
     }
     return render(request, 'dashboard/admin/dashboard.html', context)
 
@@ -60,12 +58,6 @@ def admin_users(request):
                 status_text = 'activated' if target_user.is_active else 'deactivated'
                 target_user.save()
                 messages.success(request, f"User {target_user.email} successfully {status_text}.")
-                ActivityLog.objects.create(
-                    user=request.user,
-                    action='update',
-                    action_name='User Status Changed',
-                    details=f'User {target_user.email} was {status_text}.'
-                )
                 
         elif action == 'create':
             full_name = request.POST.get('full_name', '').strip()
@@ -113,12 +105,6 @@ def admin_users(request):
                         new_user.department = department
                     new_user.save()
                 messages.success(request, f"User {email} created successfully.")
-                ActivityLog.objects.create(
-                    user=request.user,
-                    action='create',
-                    action_name='User Created',
-                    details=f'Created new {role} account: {email}'
-                )
                 
         elif action == 'edit':
             user_id = request.POST.get('user_id')
@@ -150,12 +136,6 @@ def admin_users(request):
                     batch_obj.students.add(target_user)
                     
             messages.success(request, f"User {target_user.email} updated successfully.")
-            ActivityLog.objects.create(
-                user=request.user,
-                action='update',
-                action_name='User Updated',
-                details=f'Updated details for {target_user.email}'
-            )
             
         elif action == 'delete':
             user_id = request.POST.get('user_id')
@@ -166,12 +146,6 @@ def admin_users(request):
                 user_email = target_user.email
                 target_user.delete()
                 messages.success(request, f"User {user_email} has been permanently deleted.")
-                ActivityLog.objects.create(
-                    user=request.user,
-                    action='delete',
-                    action_name='User Deleted',
-                    details=f'Permanently deleted user: {user_email}'
-                )
                 
         elif action == 'reset_password':
             user_id = request.POST.get('user_id')
@@ -182,12 +156,6 @@ def admin_users(request):
                 target_user.set_password(new_password)
                 target_user.save()
                 messages.success(request, f"Password for {target_user.email} has been reset successfully.")
-                ActivityLog.objects.create(
-                    user=request.user,
-                    action='update',
-                    action_name='Password Reset',
-                    details=f'Password manually reset for: {target_user.email}'
-                )
             else:
                 messages.error(request, "New password cannot be empty.")
                 
@@ -201,84 +169,3 @@ def admin_users(request):
         'batches': batches,
     }
     return render(request, 'dashboard/admin/users.html', context)
-
-@login_required
-def admin_logs(request):
-    if request.user.role != 'admin':
-        return redirect('home')
-        
-    logs = ActivityLog.objects.select_related('user').order_by('-timestamp')
-    
-    context = {
-        'logs': logs,
-    }
-    
-    return render(request, 'dashboard/admin/logs.html', context)
-
-@login_required
-def admin_logs_export(request):
-    if request.user.role != 'admin':
-        return redirect('home')
-        
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="activity_logs.csv"'
-    
-    writer = csv.writer(response)
-    writer.writerow(['Timestamp', 'Action Name', 'Action Type', 'User Email', 'Role', 'Details'])
-    
-    logs = ActivityLog.objects.select_related('user').order_by('-timestamp')
-    for log in logs:
-        user_email = log.user.email if log.user else 'System'
-        user_role = log.user.get_role_display() if log.user else 'System'
-        timestamp = log.timestamp.strftime('%Y-%m-%d %H:%M:%S')
-        writer.writerow([timestamp, log.action_name, log.action, user_email, user_role, log.details])
-        
-    return response
-
-@login_required
-def admin_settings(request):
-    if request.user.role != 'admin':
-        return redirect('home')
-        
-    settings = SystemSettings.load()
-    
-    if request.method == 'POST':
-        tab = request.POST.get('tab', 'general')
-        
-        if tab == 'general':
-            settings.institution_name = request.POST.get('institution_name', settings.institution_name)
-            settings.system_email = request.POST.get('system_email', settings.system_email)
-            settings.current_academic_year = request.POST.get('current_academic_year', settings.current_academic_year)
-            settings.current_semester = request.POST.get('current_semester', settings.current_semester)
-            settings.maintenance_mode = request.POST.get('maintenance_mode') == 'on'
-            
-        elif tab == 'submissions':
-            settings.max_file_size_mb = int(request.POST.get('max_file_size_mb', settings.max_file_size_mb))
-            settings.allowed_formats = request.POST.get('allowed_formats', settings.allowed_formats)
-            settings.allow_late_submissions = request.POST.get('allow_late_submissions') == 'on'
-            
-        elif tab == 'notifications':
-            settings.email_notifications = request.POST.get('email_notifications') == 'on'
-            
-        elif tab == 'security':
-            settings.session_timeout_mins = int(request.POST.get('session_timeout_mins', settings.session_timeout_mins))
-            settings.max_login_attempts = int(request.POST.get('max_login_attempts', settings.max_login_attempts))
-            settings.require_2fa = request.POST.get('require_2fa') == 'on'
-            
-        # The 'archives' tab logic is intentionally bypassed as per MVP design
-            
-        settings.save()
-        messages.success(request, f"{tab.capitalize()} settings updated successfully.")
-        
-        ActivityLog.objects.create(
-            user=request.user,
-            action='update',
-            action_name='Settings Updated',
-            details=f'Updated system {tab} settings'
-        )
-        return redirect('dashboard:admin_settings')
-
-    context = {
-        'settings': settings,
-    }
-    return render(request, 'dashboard/admin/settings.html', context)

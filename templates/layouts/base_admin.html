@@ -65,18 +65,6 @@
                             <span class="font-medium">Batches</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="{% url 'dashboard:admin_logs' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if 'admin_log' in request.resolver_match.url_name %}bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-md shadow-teal-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
-                            <i data-lucide="activity" class="w-5 h-5"></i>
-                            <span class="font-medium">Activity Logs</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'dashboard:admin_settings' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if 'admin_setting' in request.resolver_match.url_name %}bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-md shadow-teal-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
-                            <i data-lucide="settings" class="w-5 h-5"></i>
-                            <span class="font-medium">Settings</span>
-                        </a>
-                    </li>
                 </ul>
             </nav>
 
