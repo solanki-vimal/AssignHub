@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from academic.models import Course, Batch
 from assignments.models import Assignment
+from dashboard.forms import FacultyCourseForm
 
 @login_required
 def faculty_dashboard(request):
@@ -15,9 +16,15 @@ def faculty_dashboard(request):
         return redirect('home')
 
     # Fetch faculty-specific data
-    faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False).annotate(
-        students_count=Count('students')
-    )
+    faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False)
+    
+    User = get_user_model()
+    for course in faculty_courses:
+        course.students_count = User.objects.filter(
+            role='student',
+            enrolled_batches__courses=course,
+            enrolled_batches__is_archived=False
+        ).distinct().count()
     
     total_courses = faculty_courses.count()
     
@@ -49,6 +56,17 @@ def faculty_courses(request):
     if request.user.role != 'faculty':
         return redirect('home')
     
+    if request.method == 'POST':
+        from django.shortcuts import get_object_or_404
+        from django.contrib import messages
+        course_id = request.POST.get('course_id')
+        course = get_object_or_404(Course, id=course_id, faculty=request.user)
+        form = FacultyCourseForm(request.POST, instance=course)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Description for {course.code} updated successfully.")
+            return redirect('dashboard:faculty_courses')
+
     User = get_user_model()
     from assignments.models import Submission
     
