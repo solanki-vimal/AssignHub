@@ -7,10 +7,8 @@ def student_dashboard(request):
     if request.user.role != 'student':
         return redirect('home')
 
-    # Fetch courses explicitly enrolled or inherited via batch
-    student_courses = request.user.enrolled_courses.filter(is_archived=False)
-    batch_courses = Course.objects.filter(batches__in=request.user.enrolled_batches.all(), is_archived=False)
-    all_courses = (student_courses | batch_courses).distinct()
+    # Fetch courses inherited via batch
+    all_courses = Course.objects.filter(batches__in=request.user.enrolled_batches.all(), is_archived=False).distinct()
 
     total_courses = all_courses.count()
 
@@ -57,9 +55,10 @@ def student_courses(request):
 
     from assignments.models import Assignment, Submission
 
-    student_courses_qs = request.user.enrolled_courses.filter(is_archived=False)
-    batch_courses_qs = Course.objects.filter(batches__in=request.user.enrolled_batches.all(), is_archived=False)
-    all_courses = (student_courses_qs | batch_courses_qs).distinct().select_related('faculty')
+    all_courses = Course.objects.filter(
+        batches__in=request.user.enrolled_batches.all(), 
+        is_archived=False
+    ).distinct().select_related('faculty')
 
     course_data = []
     for course in all_courses:
@@ -102,13 +101,7 @@ def student_assignments(request):
         published=True
     ).select_related('course', 'batch').order_by('due_date')
     
-    # Also include assignments from directly enrolled courses
-    direct_course_assignments = Assignment.objects.filter(
-        course__in=request.user.enrolled_courses.all(),
-        published=True
-    ).exclude(id__in=assignments_qs).select_related('course', 'batch')
-    
-    all_assignments = list(assignments_qs) + list(direct_course_assignments)
+    all_assignments = list(assignments_qs)
     
     # Fetch all submissions for this student in one query
     submission_map = {
@@ -139,12 +132,9 @@ def student_assignment_detail(request, pk):
 
     from assignments.models import Assignment
     
-    # Verify the assignment is legally assigned to the student (either directly or via batch)
+    # Verify the assignment is legally assigned to the student (via batch)
     assignment = get_object_or_404(Assignment, pk=pk, published=True)
-    in_batch = assignment.batch in request.user.enrolled_batches.all()
-    in_course = hasattr(assignment, 'course') and assignment.course in request.user.enrolled_courses.all()
-    
-    if not (in_batch or in_course):
+    if assignment.batch not in request.user.enrolled_batches.all():
         messages.error(request, "You do not have permission to view this assignment.")
         return redirect('dashboard:student_assignments')
         
@@ -197,10 +187,8 @@ def student_course_detail(request, pk):
     from django.shortcuts import get_object_or_404
     from assignments.models import Assignment
 
-    # Ensure the student is actually enrolled in this course (via batch or direct)
-    student_courses = request.user.enrolled_courses.filter(is_archived=False)
-    batch_courses = Course.objects.filter(batches__in=request.user.enrolled_batches.all(), is_archived=False)
-    all_courses = (student_courses | batch_courses).distinct()
+    # Ensure the student is actually enrolled in this course (via batch)
+    all_courses = Course.objects.filter(batches__in=request.user.enrolled_batches.all(), is_archived=False).distinct()
 
     course = get_object_or_404(all_courses, pk=pk)
 
