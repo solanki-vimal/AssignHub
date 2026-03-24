@@ -30,6 +30,7 @@ urlpatterns = [
     path('faculty/assignments/<int:pk>/', assignment_views.faculty_view_assignment, name='faculty_view_assignment'),
     path('faculty/assignments/<int:pk>/edit/', assignment_views.faculty_edit_assignment, name='faculty_edit_assignment'),
     path('faculty/assignments/<int:pk>/toggle-publish/', assignment_views.faculty_toggle_publish, name='faculty_toggle_publish'),
+    path('faculty/assignments/<int:pk>/extend/', assignment_views.faculty_extend_deadline, name='faculty_extend_deadline'),
     path('faculty/assignments/<int:pk>/delete/', assignment_views.faculty_delete_assignment, name='faculty_delete_assignment'),
     path('faculty/assignments/<int:assignment_pk>/submissions/', views.faculty_submission_list, name='faculty_submission_list'),
     path('faculty/submissions/<int:submission_pk>/', views.faculty_submission_detail, name='faculty_submission_detail'),

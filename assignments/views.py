@@ -220,3 +220,23 @@ def faculty_delete_assignment(request, pk):
     messages.success(request, f"Assignment '{title}' was deleted successfully.")
     
     return redirect('dashboard:faculty_assignments')
+
+
+@login_required
+@require_POST
+def faculty_extend_deadline(request, pk):
+    if request.user.role != 'faculty':
+        return redirect('home')
+        
+    assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
+    
+    from dashboard.forms import DeadlineExtensionForm
+    form = DeadlineExtensionForm(request.POST, instance=assignment)
+    
+    if form.is_valid():
+        form.save()
+        messages.success(request, f"Deadline for '{assignment.title}' extended successfully.")
+    else:
+        messages.error(request, "Invalid date provided. Please try again.")
+        
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard:faculty_assignments'))

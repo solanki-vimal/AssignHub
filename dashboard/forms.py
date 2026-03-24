@@ -1,5 +1,5 @@
 from django import forms
-from assignments.models import Submission
+from assignments.models import Assignment, Submission
 from academic.models import Course
 
 class StudentSearchForm(forms.Form):
@@ -50,5 +50,16 @@ class FacultyCourseForm(forms.ModelForm):
                 'class': 'w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-slate-700 resize-none',
                 'placeholder': 'Update course description or syllabus summary...',
                 'rows': 4
+            })
+        }
+
+class DeadlineExtensionForm(forms.ModelForm):
+    class Meta:
+        model = Assignment
+        fields = ['due_date']
+        widgets = {
+            'due_date': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'class': 'w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-medium'
             })
         }
