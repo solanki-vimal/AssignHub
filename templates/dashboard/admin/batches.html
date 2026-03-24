@@ -45,7 +45,7 @@
             <!-- Batches Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
                 {% for batch in batches %}
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg transition-all p-6 relative batch-card" data-year="{{ batch.academic_year }}" data-semester="{{ batch.semester|default:'' }}" data-search-terms="{{ batch.name|lower }} {{ batch.academic_year|lower }} {{ batch.coordinator.first_name|lower|default:'' }} {{ batch.coordinator.last_name|lower|default:'' }}">
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg transition-all p-6 relative batch-card" data-year="{{ batch.academic_year }}" data-semester="{{ batch.semester|default:'' }}" data-search-terms="{{ batch.name|lower }} {{ batch.academic_year|lower }}">
                     <div class="flex justify-between items-start mb-4">
                         <div class="flex items-center gap-3">
                             <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
@@ -62,9 +62,12 @@
                             <a href="{% url 'dashboard:admin_manage_batch_courses' batch.id %}" class="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-slate-100 rounded transition-colors" title="Manage Courses">
                                 <i data-lucide="book-open" class="w-4 h-4"></i>
                             </a>
-                            <button onclick="openEditModal('{{ batch.id }}', '{{ batch.name|escapejs }}', '{{ batch.academic_year|escapejs }}', '{{ batch.is_active }}', '{% if batch.semester %}{{ batch.semester }}{% endif %}', '{% if batch.coordinator %}{{ batch.coordinator.id }}{% endif %}');" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors" title="Edit Batch">
+                             <a href="javascript:void(0)" 
+                                onclick="openEditModal('{{ batch.id }}', '{{ batch.name|escapejs }}', '{{ batch.academic_year|escapejs }}', '{{ batch.is_active }}', '{% if batch.semester %}{{ batch.semester }}{% endif %}');"
+                                class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors" 
+                                title="Edit Batch">
                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            </button>
+                            </a>
                             <form method="POST" action="{% url 'dashboard:admin_batch_archive' batch.id %}" class="inline-block m-0 p-0" onsubmit="return confirm('{% if show_archived %}Are you sure you want to unarchive this batch?{% else %}Are you sure you want to archive this batch?{% endif %}');">
                                 {% csrf_token %}
                                 {% if show_archived %}
@@ -106,14 +109,6 @@
                             <span class="text-slate-500">Courses</span>
                             <span class="font-semibold text-slate-900">{{ batch.course_count }}</span>
                         </div>
-                        <div class="pt-3 border-t border-slate-100">
-                            <p class="text-xs text-slate-400 mb-1">Coordinator</p>
-                            {% if batch.coordinator %}
-                            <p class="text-sm font-medium text-slate-900">{{ batch.coordinator.get_full_name|default:batch.coordinator.email }}</p>
-                            {% else %}
-                            <p class="text-sm font-medium text-slate-400 italic">Not Assigned</p>
-                            {% endif %}
-                        </div>
                     </div>
                 </div>
                 {% empty %}
@@ -133,44 +128,25 @@
                 {% csrf_token %}
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Batch Name</label>
-                    <input type="text" name="name" required placeholder="e.g. B7" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                    {{ form.name }}
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
-                        <input type="date" name="start_date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                        {{ form.start_date }}
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">End Date</label>
-                        <input type="date" name="end_date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                        {{ form.end_date }}
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                    <select name="status" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
+                    {{ form.status }}
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Semester <span class="text-slate-400 text-xs">(optional)</span></label>
-                        <select name="semester" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
-                            <option value="">--</option>
-                            {% for sem in semesters %}
-                            <option value="{{ sem }}">Sem {{ sem }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Coordinator <span class="text-slate-400 text-xs">(optional)</span></label>
-                        <select name="coordinator_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
-                            <option value="">-- None --</option>
-                            {% for faculty in faculty_list %}
-                            <option value="{{ faculty.id }}">{{ faculty.get_full_name|default:faculty.email }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Semester <span class="text-slate-400 text-xs">(optional)</span></label>
+                    {{ form.semester }}
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="toggleModal('add-batch-modal')" class="flex-1 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium">Cancel</button>
@@ -188,44 +164,33 @@
                 {% csrf_token %}
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Batch Name</label>
-                    <input type="text" id="edit-batch-name" name="name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="id_edit-name" name="edit-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
-                        <input type="date" id="edit-batch-start" name="start_date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                        <input type="date" id="id_edit-start_date" name="edit-start_date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">End Date</label>
-                        <input type="date" id="edit-batch-end" name="end_date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                        <input type="date" id="id_edit-end_date" name="edit-end_date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                    <select id="edit-batch-status" name="status" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                    <select id="id_edit-status" name="edit-status" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Semester <span class="text-slate-400 text-xs">(optional)</span></label>
-                        <select id="edit-batch-semester" name="semester" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
-                            <option value="">--</option>
-                            {% for sem in semesters %}
-                            <option value="{{ sem }}">Sem {{ sem }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Coordinator <span class="text-slate-400 text-xs">(optional)</span></label>
-                        <select id="edit-batch-coordinator" name="coordinator_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
-                            <option value="">-- None --</option>
-                            {% for faculty in faculty_list %}
-                            <option value="{{ faculty.id }}">{{ faculty.get_full_name|default:faculty.email }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Semester <span class="text-slate-400 text-xs">(optional)</span></label>
+                    <select id="id_edit-semester" name="edit-semester" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900">
+                        <option value="">--</option>
+                        {% for sem in semesters %}
+                        <option value="{{ sem }}">Sem {{ sem }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="toggleModal('edit-batch-modal')" class="flex-1 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium">Cancel</button>
@@ -238,5 +203,44 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script>
+function openEditModal(id, name, year, isActive, semester) {
+    const modal = document.getElementById('edit-batch-modal');
+    if (!modal) return;
+    
+    // Set form action
+    const form = modal.querySelector('form');
+    if (form) form.action = `/dashboard/admin/batches/${id}/edit/`;
+    
+    // Fill fields
+    const fields = {
+        'id_edit-name': name,
+        'id_edit-status': (isActive.toLowerCase() === 'true') ? 'active' : 'inactive',
+        'id_edit-semester': semester || ''
+    };
+
+    for (const [id, value] of Object.entries(fields)) {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+    }
+
+    // Handle Year range to dummy dates
+    if (year && year.includes('-')) {
+        const parts = year.split('-');
+        let sYear = parts[0], eYear = parts[1];
+        if (eYear.length === 2) eYear = "20" + eYear;
+        const start = document.getElementById('id_edit-start_date');
+        const end = document.getElementById('id_edit-end_date');
+        if (start) start.value = `${sYear}-01-01`;
+        if (end) end.value = `${eYear}-12-31`;
+    }
+
+    if (typeof toggleModal === 'function') {
+        toggleModal('edit-batch-modal');
+    } else {
+        modal.classList.remove('hidden');
+    }
+}
+</script>
 <script src="{% static 'js/admin_batches.js' %}"></script>
 {% endblock %}

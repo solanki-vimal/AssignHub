@@ -12,59 +12,45 @@ def admin_batches(request):
     if request.user.role != 'admin':
         return redirect('home')
     
-    User = get_user_model()
-    faculty_list = User.objects.filter(role='faculty').order_by('first_name')
+    from dashboard.forms import AdminBatchForm
     
     if request.method == 'POST':
-        name = request.POST.get('name')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        status = request.POST.get('status', 'active')
-        semester = request.POST.get('semester')
-        coordinator_id = request.POST.get('coordinator_id')
-        
-        if not all([name, start_date, end_date]):
-            messages.error(request, "Name and dates are required.")
-        else:
+        form = AdminBatchForm(request.POST, prefix='add')
+        if form.is_valid():
             try:
-                s_year = start_date.split('-')[0]
-                e_year = end_date.split('-')[0][-2:]
-                academic_year = f"{s_year}-{e_year}"
-                coordinator = User.objects.get(pk=coordinator_id) if coordinator_id else None
-                semester_num = int(semester) if semester else None
-                
-                if Batch.objects.filter(name=name, academic_year=academic_year).exists():
-                    messages.error(request, f"Batch {name} for {academic_year} already exists.")
-                else:
-                    batch = Batch.objects.create(
-                        name=name,
-                        academic_year=academic_year,
-                        is_active=(status == 'active'),
-                        semester=semester_num,
-                        coordinator=coordinator
-                    )
-                            
-                    messages.success(request, f"Batch {name} added successfully.")
-                    ActivityLog.objects.create(
-                        user=request.user,
-                        action='create',
-                        action_name='Batch Created',
-                        details=f'Batch {name} ({academic_year}) was created.'
-                    )
+                batch = form.save()
+                messages.success(request, f"Batch {batch.name} added successfully.")
+                ActivityLog.objects.create(
+                    user=request.user,
+                    action='create',
+                    action_name='Batch Created',
+                    details=f'Batch {batch.name} ({batch.academic_year}) was created.'
+                )
             except Exception as e:
                 messages.error(request, f"Error creating batch: {str(e)}")
-        return redirect('dashboard:admin_batches')
+            return redirect('dashboard:admin_batches')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    else:
+        form = AdminBatchForm(prefix='add')
+        
     show_archived = request.GET.get('show_archived', 'false') == 'true'
-    batches = Batch.objects.select_related('coordinator') \
-        .prefetch_related('students', 'courses') \
+    batches = Batch.objects.prefetch_related('students', 'courses') \
         .annotate(course_count=Count('courses', distinct=True)) \
         .filter(is_archived=show_archived) \
         .order_by('-id')
+    
+    # Simple form for the edit modal structure
+    edit_form = AdminBatchForm(prefix='edit')
+    
     context = {
         'batches': batches,
         'semesters': SEMESTERS,
-        'faculty_list': faculty_list,
         'show_archived': show_archived,
+        'form': form,
+        'edit_form': edit_form,
     }
     return render(request, 'dashboard/admin/batches.html', context)
 
@@ -73,44 +59,27 @@ def admin_batch_edit(request, pk):
     if request.user.role != 'admin':
         return redirect('home')
     
-    User = get_user_model()
     batch = get_object_or_404(Batch, pk=pk)
+    from dashboard.forms import AdminBatchForm
     
     if request.method == 'POST':
-        name = request.POST.get('name')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        status = request.POST.get('status', 'active')
-        semester = request.POST.get('semester')
-        coordinator_id = request.POST.get('coordinator_id')
-        
-        if not all([name, start_date, end_date]):
-            messages.error(request, "Name and dates are required.")
-        else:
+        form = AdminBatchForm(request.POST, instance=batch, prefix='edit')
+        if form.is_valid():
             try:
-                s_year = start_date.split('-')[0]
-                e_year = end_date.split('-')[0][-2:]
-                academic_year = f"{s_year}-{e_year}"
-                
-                if Batch.objects.filter(name=name, academic_year=academic_year).exclude(pk=pk).exists():
-                    messages.error(request, f"Batch {name} for {academic_year} already exists.")
-                else:
-                    batch.name = name
-                    batch.academic_year = academic_year
-                    batch.is_active = (status == 'active')
-                    batch.semester = int(semester) if semester else None
-                    batch.coordinator = User.objects.get(pk=coordinator_id) if coordinator_id else None
-                    batch.save()
-                            
-                    messages.success(request, f"Batch {name} updated successfully.")
-                    ActivityLog.objects.create(
-                        user=request.user,
-                        action='update',
-                        action_name='Batch Updated',
-                        details=f'Batch {name} details were updated.'
-                    )
+                form.save()
+                messages.success(request, f"Batch {batch.name} updated successfully.")
+                ActivityLog.objects.create(
+                    user=request.user,
+                    action='update',
+                    action_name='Batch Updated',
+                    details=f'Batch {batch.name} details were updated.'
+                )
             except Exception as e:
                 messages.error(request, f"Error updating batch: {str(e)}")
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
                 
     return redirect('dashboard:admin_batches')
 

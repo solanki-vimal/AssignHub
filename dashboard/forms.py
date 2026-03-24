@@ -1,6 +1,6 @@
 from django import forms
 from assignments.models import Assignment, Submission
-from academic.models import Course
+from academic.models import Course, Batch
 
 class StudentSearchForm(forms.Form):
     search = forms.CharField(
@@ -63,3 +63,48 @@ class DeadlineExtensionForm(forms.ModelForm):
                 'class': 'w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-medium'
             })
         }
+
+class AdminBatchForm(forms.ModelForm):
+    start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900'}))
+    end_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900'}))
+    status = forms.ChoiceField(choices=[('active', 'Active'), ('inactive', 'Inactive')], widget=forms.Select(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900'}))
+
+    class Meta:
+        model = Batch
+        fields = ['name', 'semester']
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'e.g. B7', 'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500'}),
+            'semester': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white text-slate-900'})
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Semester is optional in model, but we want it to be a select in form
+        from academic.constants import SEMESTERS
+        self.fields['semester'].widget.choices = [('', '--')] + [(s, f"Sem {s}") for s in SEMESTERS]
+        
+        if self.instance.pk and self.instance.academic_year:
+            # Try to pre-fill start/end date from academic_year (e.g. "2024-25")
+            # This is an approximation since we don't store exact dates in model
+            try:
+                parts = self.instance.academic_year.split('-')
+                self.fields['start_date'].initial = f"{parts[0]}-01-01"
+                self.fields['end_date'].initial = f"20{parts[1]}-12-31"
+            except: pass
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        start_date = self.cleaned_data.get('start_date')
+        end_date = self.cleaned_data.get('end_date')
+        status = self.cleaned_data.get('status')
+        
+        if start_date and end_date:
+            s_year = str(start_date.year)
+            e_year = str(end_date.year)[-2:]
+            instance.academic_year = f"{s_year}-{e_year}"
+        
+        instance.is_active = (status == 'active')
+        
+        if commit:
+            instance.save()
+        return instance
