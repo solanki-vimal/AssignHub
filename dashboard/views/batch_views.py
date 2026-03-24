@@ -127,7 +127,7 @@ def admin_manage_batch_students(request, pk):
         return redirect('dashboard:admin_manage_batch_students', pk=pk)
         
     enrolled_students = batch.students.all().order_by('first_name')
-    available_students = User.objects.filter(role='student').exclude(enrolled_batches=batch).order_by('first_name')
+    available_students = User.objects.filter(role='student').filter(enrolled_batches__isnull=True).order_by('first_name')
     
     context = {
         'batch': batch,
