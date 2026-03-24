@@ -7,7 +7,8 @@ class StudentSearchForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500',
-            'placeholder': 'Search by name or email...'
+            'placeholder': 'Search by name or email...',
+            'id': 'student-search'
         })
     )
 

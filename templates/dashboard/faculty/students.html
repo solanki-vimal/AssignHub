@@ -12,29 +12,27 @@
 
 <!-- Filters -->
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6 animate-fade-in-up" style="animation-delay: 0.1s;">
-    <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+    <form method="GET" class="flex flex-col md:flex-row gap-4 items-center justify-between">
         <div class="relative flex-1 w-full">
             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-            <input type="text" id="student-search" placeholder="Search by name or email..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500">
+            {{ search_form.search }}
         </div>
         <div class="flex items-center gap-2 w-full md:w-auto">
-            <select id="course-filter" class="flex-1 md:w-48 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500">
-                <option value="all">All Courses</option>
+            <select name="course" id="course-filter" onchange="this.form.submit()" class="flex-1 md:w-48 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500">
+                <option value="">All Courses</option>
                 {% for course in faculty_courses %}
-                <option value="{{ course.code|lower }}">{{ course.code }} - {{ course.name }}</option>
+                <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:"s" %}selected{% endif %}>{{ course.code }} - {{ course.name }}</option>
                 {% endfor %}
             </select>
-            <select id="batch-filter" class="flex-1 md:w-32 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500">
-                <option value="all">All Batches</option>
+            <select name="batch" id="batch-filter" onchange="this.form.submit()" class="flex-1 md:w-32 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500">
+                <option value="">All Batches</option>
                 {% for batch in faculty_batches %}
-                <option value="{{ batch.name|lower }}">{{ batch.name }}</option>
+                <option value="{{ batch.id }}" {% if selected_batch == batch.id|stringformat:"s" %}selected{% endif %}>{{ batch.name }}</option>
                 {% endfor %}
             </select>
-            <button class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:bg-slate-100 transition-colors">
-                <i data-lucide="download" class="w-4 h-4"></i>
-            </button>
+            <button type="submit" class="hidden">Filter</button>
         </div>
-    </div>
+    </form>
 </div>
 
 <!-- Table -->
@@ -59,7 +57,12 @@
                 <tr class="hover:bg-slate-50 transition-colors student-row" 
                     data-search="{{ student.get_full_name|lower }} {{ student.email|lower }} {{ student.enrollment_no|default:''|lower }}"
                     data-courses="{% for batch in student.enrolled_batches.all %}{% for course in batch.courses.all %}{% if course.faculty == request.user %}{{ course.code|lower }} {% endif %}{% endfor %}{% endfor %}"
-                    data-batches="{% for batch in student.enrolled_batches.all %}{{ batch.name|lower }} {% endfor %}">
+                    data-batches="{% for batch in student.enrolled_batches.all %}{{ batch.name|lower }} {% endfor %}"
+                    data-name="{{ student.get_full_name|escapejs }}"
+                    data-email="{{ student.email|escapejs }}"
+                    data-roll="{{ student.enrollment_no|default:'N/A'|escapejs }}"
+                    data-progress="{{ student.faculty_progress_pct }}"
+                    data-score="{{ student.faculty_avg_score }}">
                     <td class="p-4">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 {% cycle 'bg-blue-100 text-blue-600' 'bg-purple-100 text-purple-600' 'bg-green-100 text-green-600' 'bg-pink-100 text-pink-600' 'bg-amber-100 text-amber-600' 'bg-cyan-100 text-cyan-600' %} rounded-full flex items-center justify-center font-semibold text-xs uppercase">
@@ -102,7 +105,14 @@
                     </td>
                     <td class="p-4 text-blue-600 font-semibold text-sm">{% if student.faculty_avg_score == '--' %}--{% else %}{{ student.faculty_avg_score }}%{% endif %}</td>
                     <td class="p-4 text-right">
-                        <button class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded transition-colors"><i data-lucide="mail" class="w-4 h-4"></i></button>
+                        <div class="flex items-center justify-end gap-1">
+                            <button onclick="openStudentModal(this)" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors" title="View Profile">
+                                <i data-lucide="external-link" class="w-4 h-4"></i>
+                            </button>
+                            <a href="mailto:{{ student.email }}" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded transition-colors" title="Email Student">
+                                <i data-lucide="mail" class="w-4 h-4"></i>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% endwith %}
@@ -120,5 +130,83 @@
         </table>
     </div>
 </div>
+
+<!-- Student Detail Modal -->
+<div id="student-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
+        <div class="flex flex-col items-center text-center mb-6">
+            <div id="student-modal-avatar" class="w-20 h-20 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-3xl font-bold mb-4">
+                S
+            </div>
+            <h3 id="student-modal-name" class="text-xl font-bold text-slate-900">Student Name</h3>
+            <p id="student-modal-email" class="text-sm text-slate-500">student@example.com</p>
+        </div>
+        
+        <div class="space-y-4 mb-6">
+            <div class="flex justify-between p-3 bg-slate-50 rounded-xl">
+                <span class="text-sm text-slate-500 font-medium">Roll Number</span>
+                <span id="student-modal-roll" class="text-sm text-slate-900 font-bold">N/A</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl">
+                <div class="flex justify-between mb-2">
+                    <span class="text-sm text-slate-500 font-medium">Assignment Progress</span>
+                    <span id="student-modal-progress-text" class="text-sm text-indigo-600 font-bold">0%</span>
+                </div>
+                <div class="h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div id="student-modal-progress-bar" class="h-full bg-indigo-600 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="flex justify-between p-3 bg-indigo-50 rounded-xl">
+                <span class="text-sm text-indigo-700 font-medium">Average Score</span>
+                <span id="student-modal-score" class="text-lg font-black text-indigo-700">0%</span>
+            </div>
+        </div>
+        
+        <div class="flex gap-3">
+            <button onclick="toggleModal('student-modal')" class="flex-1 py-2.5 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition-colors">Close</button>
+            <a id="student-modal-email-btn" href="#" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-bold text-center transition-colors">Send Email</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleModal(modalId) {
+    const modal = document.getElementById(modalId);
+    const content = modal.querySelector('#modal-content');
+    
+    if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    } else {
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+}
+
+function openStudentModal(btn) {
+    const row = btn.closest('tr');
+    const name = row.getAttribute('data-name');
+    const email = row.getAttribute('data-email');
+    const roll = row.getAttribute('data-roll');
+    const progress = row.getAttribute('data-progress');
+    const score = row.getAttribute('data-score');
+
+    document.getElementById('student-modal-name').innerText = name;
+    document.getElementById('student-modal-email').innerText = email;
+    document.getElementById('student-modal-roll').innerText = roll;
+    document.getElementById('student-modal-progress-text').innerText = progress + '%';
+    document.getElementById('student-modal-progress-bar').style.width = progress + '%';
+    document.getElementById('student-modal-score').innerText = (score === '--' ? '--' : score + '%');
+    document.getElementById('student-modal-avatar').innerText = name.charAt(0).toUpperCase();
+    document.getElementById('student-modal-email-btn').href = 'mailto:' + email;
+    toggleModal('student-modal');
+}
+</script>
 <script src="{% static 'js/faculty_students.js' %}"></script>
 {% endblock %}

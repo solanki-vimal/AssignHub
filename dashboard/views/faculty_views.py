@@ -116,14 +116,27 @@ def faculty_students(request):
     faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False)
     faculty_batches = Batch.objects.filter(courses__faculty=request.user, is_archived=False).distinct()
     
-    # Get all unique students enrolled in batches associated with this faculty's courses
+    selected_course_id = request.GET.get('course')
+    selected_batch_id = request.GET.get('batch')
+    
+    from dashboard.forms import StudentSearchForm
+    search_form = StudentSearchForm(request.GET)
+    
+    # Get all students enrolled in batches associated with this faculty's courses
     User = get_user_model()
     enrolled_students = User.objects.filter(
         role='student',
         enrolled_batches__courses__faculty=request.user,
         enrolled_batches__courses__is_archived=False,
         enrolled_batches__is_archived=False
-    ).distinct().prefetch_related('enrolled_batches', 'enrolled_batches__courses')
+    )
+    
+    if selected_course_id:
+        enrolled_students = enrolled_students.filter(enrolled_batches__courses__id=selected_course_id)
+    if selected_batch_id:
+        enrolled_students = enrolled_students.filter(enrolled_batches__id=selected_batch_id)
+        
+    enrolled_students = enrolled_students.distinct().prefetch_related('enrolled_batches', 'enrolled_batches__courses')
     
     from assignments.models import Assignment, Submission
     for student in enrolled_students:
@@ -162,5 +175,8 @@ def faculty_students(request):
         'students': enrolled_students,
         'faculty_courses': faculty_courses,
         'faculty_batches': faculty_batches,
+        'selected_course': selected_course_id,
+        'selected_batch': selected_batch_id,
+        'search_form': search_form,
     }
     return render(request, 'dashboard/faculty/students.html', context)
