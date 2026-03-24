@@ -1,0 +1,99 @@
+<!-- Notification Dropdown Component -->
+<div class="relative" id="notification-dropdown">
+    <button id="notification-bell" class="relative p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-xl transition-all">
+        <i data-lucide="bell" class="w-6 h-6"></i>
+        {% if unread_notification_count > 0 %}
+        <span class="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm unread-count">
+            {{ unread_notification_count }}
+        </span>
+        {% endif %}
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div id="notification-menu" class="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 hidden opacity-0 translate-y-2 transition-all duration-200">
+        <div class="p-4 border-b border-slate-50 flex items-center justify-between">
+            <h3 class="font-bold text-slate-800">Notifications</h3>
+            {% if unread_notification_count > 0 %}
+            <button onclick="markAllNotificationsRead()" class="text-xs text-indigo-600 hover:text-indigo-700 font-semibold px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors">
+                Mark all as read
+            </button>
+            {% endif %}
+        </div>
+
+        <div class="max-h-96 overflow-y-auto" id="notification-list">
+            {% for notification in unread_notifications %}
+            <div class="p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 relative group">
+                <a href="{% url 'dashboard:mark_notification_read' notification.pk %}" class="flex gap-3">
+                    <div class="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center 
+                        {% if notification.notification_type == 'assignment' %}bg-blue-50 text-blue-600
+                        {% elif notification.notification_type == 'submission' %}bg-green-50 text-green-600
+                        {% elif notification.notification_type == 'evaluation' %}bg-purple-50 text-purple-600
+                        {% else %}bg-slate-50 text-slate-600{% endif %}">
+                        {% if notification.notification_type == 'assignment' %}
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                        {% elif notification.notification_type == 'submission' %}
+                        <i data-lucide="upload" class="w-5 h-5"></i>
+                        {% elif notification.notification_type == 'evaluation' %}
+                        <i data-lucide="award" class="w-5 h-5"></i>
+                        {% else %}
+                        <i data-lucide="info" class="w-5 h-5"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-800 mb-0.5">{{ notification.title }}</p>
+                        <p class="text-xs text-slate-500 line-clamp-2">{{ notification.message }}</p>
+                        <p class="text-[10px] text-slate-400 mt-1">{{ notification.created_at|timesince }} ago</p>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center">
+                <div class="w-12 h-12 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="bell-off" class="w-6 h-6"></i>
+                </div>
+                <p class="text-sm text-slate-500">No new notifications</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="p-3 border-t border-slate-50 text-center">
+            <span class="text-xs text-slate-400 italic">Total {{ unread_notification_count|default:0 }} unread</span>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bell = document.getElementById('notification-bell');
+    const menu = document.getElementById('notification-menu');
+    
+    if (bell && menu) {
+        bell.addEventListener('click', function(e) {
+            e.stopPropagation();
+            menu.classList.toggle('hidden');
+            setTimeout(() => {
+                menu.classList.toggle('opacity-0');
+                menu.classList.toggle('translate-y-2');
+                menu.classList.toggle('translate-y-0');
+            }, 10);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!menu.contains(e.target) && !bell.contains(e.target)) {
+                menu.classList.add('opacity-0', 'translate-y-2', 'hidden');
+                menu.classList.remove('translate-y-0');
+            }
+        });
+    }
+});
+
+function markAllNotificationsRead() {
+    fetch("{% url 'dashboard:mark_all_notifications_read' %}", {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(response => {
+        if (response.ok) {
+            window.location.reload();
+        }
+    });
+}
+</script>

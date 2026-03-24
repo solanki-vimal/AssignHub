@@ -37,5 +37,10 @@ urlpatterns = [
     path('student/assignments/<int:pk>/', views.student_assignment_detail, name='student_assignment_detail'),
     path('student/courses/<int:pk>/', views.student_course_detail, name='student_course_detail'),
     path('profile/', views.profile_view, name='profile'),
+    
+    # Notifications
+    path('notifications/<int:pk>/mark-read/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('notifications/<int:pk>/delete/', views.delete_notification, name='delete_notification'),
 ]
 

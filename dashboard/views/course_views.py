@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from academic.models import Course
 from academic.constants import DEPARTMENTS, SEMESTERS
-from academic.constants import DEPARTMENTS, SEMESTERS
+from dashboard.notifications import create_notification
 
 @login_required
 def admin_courses(request):
@@ -39,6 +39,16 @@ def admin_courses(request):
                     is_active=(status == 'active'),
                     faculty=faculty
                 )
+                
+                if faculty:
+                    create_notification(
+                        user=faculty,
+                        title="New Course Assignment",
+                        message=f"You have been assigned to teach {code} - {name}.",
+                        link="/dashboard/faculty/courses/",
+                        notification_type='system'
+                    )
+                    
                 messages.success(request, f"Course {code} added successfully.")
             except Exception as e:
                 messages.error(request, f"Error creating course: {str(e)}")
@@ -82,6 +92,17 @@ def admin_course_edit(request, pk):
                 course.semester = semester_num
                 course.department = department
                 course.is_active = (status == 'active')
+                # Notify if faculty changed
+                if faculty_id and str(course.faculty_id) != str(faculty_id):
+                    new_faculty = User.objects.get(pk=faculty_id)
+                    create_notification(
+                        user=new_faculty,
+                        title="New Course Assignment",
+                        message=f"You have been assigned to teach {code} - {name}.",
+                        link="/dashboard/faculty/courses/",
+                        notification_type='system'
+                    )
+                
                 course.faculty = User.objects.get(pk=faculty_id) if faculty_id else None
                 course.save()
                 

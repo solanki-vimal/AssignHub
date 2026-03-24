@@ -5,6 +5,7 @@ from .faculty_views import faculty_dashboard, faculty_courses, faculty_students
 from .student_views import student_dashboard, student_courses, student_assignments, student_assignment_detail, student_course_detail
 from .submission_views import faculty_submission_list, faculty_submission_detail
 from .profile_views import profile_view
+from .notification_views import mark_notification_read, mark_all_notifications_read, delete_notification
 
 __all__ = [
     'admin_dashboard', 'admin_users',
@@ -13,5 +14,6 @@ __all__ = [
     'faculty_dashboard', 'faculty_courses', 'faculty_students',
     'faculty_submission_list', 'faculty_submission_detail',
     'student_dashboard', 'student_courses', 'student_assignments', 'student_assignment_detail', 'student_course_detail',
-    'profile_view'
+    'profile_view',
+    'mark_notification_read', 'mark_all_notifications_read', 'delete_notification'
 ]

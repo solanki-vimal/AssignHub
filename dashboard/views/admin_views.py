@@ -6,8 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from academic.models import Course, Batch
 from academic.constants import DEPARTMENTS
-from academic.models import Course, Batch
-from academic.constants import DEPARTMENTS
+from dashboard.notifications import create_notification
 
 @login_required
 def admin_dashboard(request):
@@ -104,6 +103,17 @@ def admin_users(request):
                     if department:
                         new_user.department = department
                     new_user.save()
+                    new_user.save()
+                
+                # Notify Admin about new user
+                create_notification(
+                    user=request.user, # The admin performing the action
+                    title="User Created",
+                    message=f"New {role} account created for {email}.",
+                    link="/dashboard/admin/users/",
+                    notification_type='system'
+                )
+                
                 messages.success(request, f"User {email} created successfully.")
                 
         elif action == 'edit':

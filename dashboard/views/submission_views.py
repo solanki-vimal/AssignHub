@@ -5,6 +5,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.conf import settings as django_settings
 from assignments.models import Assignment, Submission, SubmissionFile
+from dashboard.notifications import create_notification
 
 
 @login_required
@@ -100,6 +101,16 @@ def faculty_submission_detail(request, submission_pk):
                 submission.faculty_remarks = remarks
                 submission.status = 'evaluated'
                 submission.save()
+                
+                # Notify student
+                create_notification(
+                    user=submission.student,
+                    title="Evaluation Released",
+                    message=f"Your submission for '{submission.assignment.title}' has been evaluated. Marks obtained: {marks_val}/{submission.assignment.max_marks}",
+                    link=f"/dashboard/student/assignments/{submission.assignment.pk}/",
+                    notification_type='evaluation'
+                )
+                
                 messages.success(request, f"Submission by {submission.student.get_full_name() or submission.student.email} evaluated successfully.")
                 return redirect('dashboard:faculty_submission_list', assignment_pk=submission.assignment.pk)
         except ValueError:

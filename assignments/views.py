@@ -10,6 +10,7 @@ from django.conf import settings as django_settings
 from .models import Assignment, AssignmentAttachment
 from .forms import AssignmentForm
 from academic.models import Course, Batch
+from dashboard.notifications import notify_batch_students
 
 
 @login_required
@@ -68,6 +69,15 @@ def faculty_create_assignment(request):
                 files = request.FILES.getlist('attachments')
                 for f in files:
                     AssignmentAttachment.objects.create(assignment=assignment, file=f)
+                
+                if assignment.published:
+                    notify_batch_students(
+                        batch=assignment.batch,
+                        title="New Assignment Posted",
+                        message=f"New assignment '{assignment.title}' has been posted for {assignment.course.name}.",
+                        link=f"/dashboard/student/assignments/{assignment.pk}/",
+                        notification_type='assignment'
+                    )
                 
                 messages.success(request, f"Assignment '{assignment.title}' created successfully.")
                 return redirect('dashboard:faculty_assignments')
@@ -197,8 +207,14 @@ def faculty_toggle_publish(request, pk):
         
     assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
     
-    assignment.published = not assignment.published
-    assignment.save()
+    if assignment.published:
+        notify_batch_students(
+            batch=assignment.batch,
+            title="Assignment Published",
+            message=f"Assignment '{assignment.title}' is now available for submission.",
+            link=f"/dashboard/student/assignments/{assignment.pk}/",
+            notification_type='assignment'
+        )
     
     status_text = "published" if assignment.published else "unpublished (saved as draft)"
     messages.success(request, f"Assignment '{assignment.title}' is now {status_text}.")
@@ -235,6 +251,13 @@ def faculty_extend_deadline(request, pk):
     
     if form.is_valid():
         form.save()
+        notify_batch_students(
+            batch=assignment.batch,
+            title="Deadline Extended",
+            message=f"The deadline for '{assignment.title}' has been extended to {assignment.due_date.strftime('%d %b, %Y')}.",
+            link=f"/dashboard/student/assignments/{assignment.pk}/",
+            notification_type='assignment'
+        )
         messages.success(request, f"Deadline for '{assignment.title}' extended successfully.")
     else:
         messages.error(request, "Invalid date provided. Please try again.")

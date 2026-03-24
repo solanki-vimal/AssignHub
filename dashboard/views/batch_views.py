@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from academic.models import Course, Batch
 from academic.constants import SEMESTERS
+from dashboard.notifications import create_notification
 
 @login_required
 def admin_batches(request):
@@ -81,12 +82,6 @@ def admin_batch_delete(request, pk):
         name = batch.name
         batch.delete()
         messages.success(request, f"Batch {name} deleted successfully.")
-        ActivityLog.objects.create(
-            user=request.user,
-            action='delete',
-            action_name='Batch Deleted',
-            details=f'Batch {name} was permanently deleted.'
-        )
         
     return redirect('dashboard:admin_batches')
 
@@ -101,11 +96,9 @@ def admin_batch_archive(request, pk):
         if action == 'unarchive':
             batch.is_archived = False
             messages.success(request, f"Batch {batch.name} unarchived successfully.")
-            ActivityLog.objects.create(user=request.user, action='update', action_name='Batch Unarchived', details=f'{batch.name}')
         else:
             batch.is_archived = True
             messages.success(request, f"Batch {batch.name} archived successfully.")
-            ActivityLog.objects.create(user=request.user, action='update', action_name='Batch Archived', details=f'{batch.name}')
         batch.save()
         
     return redirect(request.META.get('HTTP_REFERER', 'dashboard:admin_batches'))
@@ -127,11 +120,9 @@ def admin_manage_batch_students(request, pk):
             if action == 'add':
                 batch.students.add(student)
                 messages.success(request, f"Added student {student.first_name} to {batch.name}.")
-                ActivityLog.objects.create(user=request.user, action='update', action_name='Batch Enrollment', details=f'Added {student.email} to {batch.name}')
             elif action == 'remove':
                 batch.students.remove(student)
                 messages.success(request, f"Removed student {student.first_name} from {batch.name}.")
-                ActivityLog.objects.create(user=request.user, action='update', action_name='Batch Enrollment', details=f'Removed {student.email} from {batch.name}')
                 
         return redirect('dashboard:admin_manage_batch_students', pk=pk)
         
@@ -161,11 +152,19 @@ def admin_manage_batch_courses(request, pk):
             if action == 'add':
                 batch.courses.add(course)
                 messages.success(request, f"Added course {course.code} to {batch.name}.")
-                ActivityLog.objects.create(user=request.user, action='update', action_name='Batch Assignment', details=f'Added Course {course.code} to {batch.name}')
+                
+                # Notify Faculty
+                if course.faculty:
+                    create_notification(
+                        user=course.faculty,
+                        title="Course Batch Update",
+                        message=f"Your course {course.code} has been assigned to a new batch: {batch.name}.",
+                        link="/dashboard/faculty/courses/",
+                        notification_type='system'
+                    )
             elif action == 'remove':
                 batch.courses.remove(course)
                 messages.success(request, f"Removed course {course.code} from {batch.name}.")
-                ActivityLog.objects.create(user=request.user, action='update', action_name='Batch Assignment', details=f'Removed Course {course.code} from {batch.name}')
                 
         return redirect('dashboard:admin_manage_batch_courses', pk=pk)
         

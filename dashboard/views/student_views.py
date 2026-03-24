@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from academic.models import Course
+from dashboard.notifications import create_notification
 
 @login_required
 def student_dashboard(request):
@@ -169,6 +170,16 @@ def student_assignment_detail(request, pk):
             if submission.status == 'pending':
                 submission.status = 'submitted'
                 submission.save()
+                
+                # Notify faculty
+                create_notification(
+                    user=assignment.created_by,
+                    title="New Submission",
+                    message=f"{request.user.get_full_name() or request.user.email} submitted '{assignment.title}'.",
+                    link=f"/dashboard/faculty/submissions/{submission.pk}/",
+                    notification_type='submission'
+                )
+                
             messages.success(request, 'Files successfully uploaded.')
             return redirect('dashboard:student_assignment_detail', pk=pk)
 
