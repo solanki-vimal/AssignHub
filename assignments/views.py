@@ -89,7 +89,7 @@ def faculty_create_assignment(request):
         form = AssignmentForm(faculty=request.user)
                 
     faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False).annotate(
-        students_count=Count('students', distinct=True)
+        students_count=Count('batches__students', distinct=True)
     ).prefetch_related('batches')
     
     course_batches_data = {}
