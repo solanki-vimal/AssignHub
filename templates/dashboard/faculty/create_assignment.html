@@ -4,6 +4,12 @@
 {% block title %}{% if is_edit %}Edit Assignment{% else %}Create Assignment{% endif %} - Faculty{% endblock %}
 {% block header_title %}{% if is_edit %}Edit Assignment{% else %}New Assignment{% endif %}{% endblock %}
 
+{% block back_button %}
+<a href="{% if is_edit %}{% url 'dashboard:faculty_view_assignment' pk=assignment.pk %}{% else %}{% url 'dashboard:faculty_assignments' %}{% endif %}" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors mr-2 inline-flex items-center">
+    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+</a>
+{% endblock %}
+
 {% block content %}
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}

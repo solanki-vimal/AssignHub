@@ -179,7 +179,7 @@ def faculty_edit_assignment(request, pk):
         form = AssignmentForm(instance=assignment, faculty=request.user)
                 
     faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False).annotate(
-        students_count=Count('students', distinct=True)
+        students_count=Count('batches__students', distinct=True)
     ).prefetch_related('batches')
     
     course_batches_data = {}
@@ -206,6 +206,9 @@ def faculty_toggle_publish(request, pk):
         return redirect('home')
         
     assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
+    
+    assignment.published = not assignment.published
+    assignment.save()
     
     if assignment.published:
         notify_batch_students(

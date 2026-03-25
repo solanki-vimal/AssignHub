@@ -17,7 +17,7 @@ def notify_batch_students(batch, title, message, link=None, notification_type='a
     Notify all students enrolled in a specific batch.
     """
     from accounts.models import User
-    students = User.objects.filter(batch=batch.id, role='student')
+    students = User.objects.filter(enrolled_batches=batch, role='student', is_active=True)
     
     notifications = [
         Notification(

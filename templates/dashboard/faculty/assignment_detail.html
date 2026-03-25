@@ -16,10 +16,13 @@
         <i data-lucide="edit-3" class="w-4 h-4"></i>
         Edit
     </a>
-    <button class="inline-flex items-center gap-2 px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors font-medium text-sm">
-        <i class="w-4 h-4" data-lucide="{% if assignment.published %}eye-off{% else %}eye{% endif %}"></i>
-        {% if assignment.published %}Unpublish{% else %}Publish{% endif %}
-    </button>
+    <form method="POST" action="{% url 'dashboard:faculty_toggle_publish' assignment.pk %}" class="m-0">
+        {% csrf_token %}
+        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors font-medium text-sm">
+            <i class="w-4 h-4" data-lucide="{% if assignment.published %}eye-off{% else %}eye{% endif %}"></i>
+            {% if assignment.published %}Unpublish{% else %}Publish{% endif %}
+        </button>
+    </form>
 </div>
 {% endblock %}
 
