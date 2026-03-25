@@ -122,12 +122,13 @@ class UserProfileForm(forms.ModelForm):
         from django.contrib.auth import get_user_model
         User = get_user_model()
         model = User
-        fields = ['first_name', 'last_name', 'contact_no', 'enrollment_no', 'batch', 'faculty_id', 'department', 'profile_pic']
+        fields = ['first_name', 'last_name', 'contact_no', 'enrollment_no', 'semester', 'batch', 'faculty_id', 'department', 'profile_pic']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500'}),
             'last_name': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500'}),
             'contact_no': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500', 'placeholder': '+91'}),
             'enrollment_no': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500', 'placeholder': 'e.g. 21CE000'}),
+            'semester': forms.Select(choices=[('',' -- Select Semester --')] + [(i, f'Semester {i}') for i in range(1, 9)], attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white'}),
             'faculty_id': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500', 'placeholder': 'e.g. FAC001'}),
             'batch': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white'}),
             'department': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white'}),

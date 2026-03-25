@@ -93,6 +93,10 @@
                             <input type="text" name="enrollment_no" value="{{ request.user.enrollment_no|default:'' }}" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" placeholder="e.g. 21CE000">
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Semester <span class="text-xs text-slate-400 font-normal">(Read-only)</span></label>
+                            <input type="text" value="{% if request.user.semester %}Semester {{ request.user.semester }}{% else %}Not Assigned{% endif %}" readonly class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed">
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Batch <span class="text-xs text-slate-400 font-normal">(Read-only)</span></label>
                             <input type="text" value="{{ request.user.batch|default:'No Batch' }}" readonly class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed">
                         </div>

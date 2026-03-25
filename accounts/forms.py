@@ -47,20 +47,10 @@ class UserRegistrationForm(forms.ModelForm):
         })
     )
     
-    # Semester selection
-    semester = forms.IntegerField(
-        required=False,
-        min_value=1,
-        max_value=8,
-        widget=forms.NumberInput(attrs={
-            'placeholder': 'Enter Semester (e.g. 1)',
-            'class': 'w-full px-4 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors'
-        })
-    )
 
     class Meta:
         model = User
-        fields = ['role', 'contact_no', 'enrollment_no', 'faculty_id', 'department', 'semester']
+        fields = ['role', 'contact_no', 'enrollment_no', 'faculty_id', 'department']
         widgets = {
             'role': forms.HiddenInput(),
             'contact_no': forms.TextInput(attrs={
@@ -104,9 +94,6 @@ class UserRegistrationForm(forms.ModelForm):
         if dept:
             user.department = dept.name
             
-        semester_val = self.cleaned_data.get('semester')
-        if semester_val:
-            user.semester = semester_val
 
         if commit:
             user.save()
