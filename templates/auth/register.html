@@ -15,94 +15,119 @@
     <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
         {{ message }}
     </div>
-    {% endfor %}
+{% endfor %}
 </div>
 {% endif %}
 
 <form method="POST" action="{% url 'accounts:register' %}" class="space-y-5">
     {% csrf_token %}
     
-    <!-- Role Selection (Pure HTML/CSS) -->
+    <!-- Hidden Fields from ModelForm -->
+    {{ form.role }}
+    {{ form.department }}
+    {{ form.batch }}
+
+    <!-- Role Selection (Visual) -->
     <div class="mb-6">
         <label class="text-sm font-medium text-slate-700 mb-3 block">Select Your Role</label>
         <div class="grid grid-cols-3 gap-3">
             <label class="cursor-pointer">
-                <input type="radio" name="role" value="student" class="hidden role-radio" checked>
-                <div class="role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center">
-                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors icon-container">
-                        <i data-lucide="graduation-cap" class="w-5 h-5 text-slate-500 icon-svg"></i>
+                <input type="radio" name="role_selector" value="student" class="hidden role-radio" checked onchange="updateRoleFields('student')">
+                <div class="role-card p-4 rounded-xl border-2 transition-all border-teal-500 bg-teal-50/30 h-full text-center" id="card-student">
+                    <div class="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors">
+                        <i data-lucide="graduation-cap" class="w-5 h-5 text-teal-600"></i>
                     </div>
-                    <span class="text-sm font-medium text-slate-600 label-text">Student</span>
+                    <span class="text-sm font-medium text-teal-700">Student</span>
                 </div>
             </label>
             <label class="cursor-pointer">
-                <input type="radio" name="role" value="faculty" class="hidden role-radio">
-                <div class="role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center">
-                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors icon-container">
-                        <i data-lucide="users" class="w-5 h-5 text-slate-500 icon-svg"></i>
+                <input type="radio" name="role_selector" value="faculty" class="hidden role-radio" onchange="updateRoleFields('faculty')">
+                <div class="role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center" id="card-faculty">
+                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors">
+                        <i data-lucide="users" class="w-5 h-5 text-slate-500"></i>
                     </div>
-                    <span class="text-sm font-medium text-slate-600 label-text">Faculty</span>
+                    <span class="text-sm font-medium text-slate-600">Faculty</span>
                 </div>
             </label>
             <label class="cursor-pointer">
-                <input type="radio" name="role" value="admin" class="hidden role-radio">
-                <div class="role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center">
-                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors icon-container">
-                        <i data-lucide="shield" class="w-5 h-5 text-slate-500 icon-svg"></i>
+                <input type="radio" name="role_selector" value="admin" class="hidden role-radio" onchange="updateRoleFields('admin')">
+                <div class="role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center" id="card-admin">
+                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors">
+                        <i data-lucide="shield" class="w-5 h-5 text-slate-500"></i>
                     </div>
-                    <span class="text-sm font-medium text-slate-600 label-text">Admin</span>
+                    <span class="text-sm font-medium text-slate-600">Admin</span>
                 </div>
             </label>
         </div>
     </div>
 
-    <div>
-        <label class="text-sm font-medium text-slate-700">Full Name</label>
-        <div class="relative mt-1.5">
-            <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
-            <input type="text" name="full_name" required placeholder="Enter your full name" class="w-full pl-10 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
+    <!-- Common Fields -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+            <label class="text-sm font-medium text-slate-700">Full Name</label>
+            <div class="relative mt-1.5">
+                <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                {{ form.full_name }}
+            </div>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-slate-700">Email Address</label>
+            <div class="relative mt-1.5">
+                <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                {{ form.email }}
+            </div>
         </div>
     </div>
 
-    <div>
-        <label class="text-sm font-medium text-slate-700">Email Address</label>
-        <div class="relative mt-1.5">
-            <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
-            <input type="email" name="email" required placeholder="Enter your email" class="w-full pl-10 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+            <label class="text-sm font-medium text-slate-700">Contact Number</label>
+            {{ form.contact_no }}
+        </div>
+        <div>
+            <label class="text-sm font-medium text-slate-700">Department</label>
+            {{ form.department_choice }}
         </div>
     </div>
 
-    <!-- Student Specific Signup Fields -->
-    <div id="student-fields" class="space-y-5">
+    <!-- Role-Specific Fields (Toggled by JS) -->
+    <div id="student-only-fields" class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
             <label class="text-sm font-medium text-slate-700">Enrollment Number</label>
-            <input type="text" name="enrollment_no" placeholder="e.g., 24CEUBS148" class="w-full px-4 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
+            {{ form.enrollment_no }}
         </div>
         <div>
             <label class="text-sm font-medium text-slate-700">Batch</label>
-            <input type="text" name="batch" placeholder="e.g., B4" class="w-full px-4 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
+            {{ form.batch_choice }}
         </div>
     </div>
 
-    <div>
-        <label class="text-sm font-medium text-slate-700">Password</label>
-        <div class="relative mt-1.5">
-            <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
-            <input type="password" id="password-input" name="password" required placeholder="Enter your password" class="w-full pl-10 pr-12 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
-            <button type="button" onclick="togglePasswordVisibility('password-input', 'pwd-eye-icon')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
-                <i data-lucide="eye" id="pwd-eye-icon" class="w-5 h-5"></i>
-            </button>
-        </div>
+    <div id="faculty-only-fields" class="hidden">
+        <label class="text-sm font-medium text-slate-700">Faculty ID</label>
+        {{ form.faculty_id }}
     </div>
 
-    <div>
-        <label class="text-sm font-medium text-slate-700">Confirm Password</label>
-        <div class="relative mt-1.5">
-            <i data-lucide="shield-check" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
-            <input type="password" id="confirm-password-input" name="confirm_password" required placeholder="Confirm your password" class="w-full pl-10 pr-12 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors">
-            <button type="button" onclick="togglePasswordVisibility('confirm-password-input', 'confirm-pwd-eye-icon')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
-                <i data-lucide="eye" id="confirm-pwd-eye-icon" class="w-5 h-5"></i>
-            </button>
+    <!-- Passwords -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+            <label class="text-sm font-medium text-slate-700">Password</label>
+            <div class="relative mt-1.5">
+                <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                {{ form.password }}
+                <button type="button" onclick="togglePasswordVisibility('password-input', 'pwd-eye-icon')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
+                    <i data-lucide="eye" id="pwd-eye-icon" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+        <div>
+            <label class="text-sm font-medium text-slate-700">Confirm Password</label>
+            <div class="relative mt-1.5">
+                <i data-lucide="shield-check" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                {{ form.confirm_password }}
+                <button type="button" onclick="togglePasswordVisibility('confirm-password-input', 'confirm-pwd-eye-icon')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
+                    <i data-lucide="eye" id="confirm-pwd-eye-icon" class="w-5 h-5"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -117,4 +142,50 @@
         Sign In
     </a>
 </p>
+
+<script>
+function updateRoleFields(role) {
+    // Update hidden role field
+    document.querySelector('input[name="role"]').value = role;
+    
+    // Toggle field visibility
+    const studentFields = document.getElementById('student-only-fields');
+    const facultyFields = document.getElementById('faculty-only-fields');
+    
+    if (role === 'student') {
+        studentFields.classList.remove('hidden');
+        facultyFields.classList.add('hidden');
+    } else if (role === 'faculty') {
+        studentFields.classList.add('hidden');
+        facultyFields.classList.remove('hidden');
+    } else {
+        studentFields.classList.add('hidden');
+        facultyFields.classList.add('hidden');
+    }
+
+    // Update Card UI
+    ['student', 'faculty', 'admin'].forEach(r => {
+        const card = document.getElementById('card-' + r);
+        const icon = card.querySelector('.icon-svg');
+        const text = card.querySelector('.label-text');
+        
+        if (r === role) {
+            card.className = "role-card p-4 rounded-xl border-2 transition-all border-teal-500 bg-teal-50/30 h-full text-center";
+            card.querySelector('div').className = "w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors";
+            card.querySelector('i').className = "w-5 h-5 text-teal-600";
+            card.querySelector('span').className = "text-sm font-medium text-teal-700";
+        } else {
+            card.className = "role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center";
+            card.querySelector('div').className = "w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors";
+            card.querySelector('i').className = "w-5 h-5 text-slate-400";
+            card.querySelector('span').className = "text-sm font-medium text-slate-600";
+        }
+    });
+}
+
+// Set initial role on load
+window.addEventListener('load', () => {
+    updateRoleFields('student');
+});
+</script>
 {% endblock %}

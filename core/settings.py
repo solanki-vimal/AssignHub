@@ -132,3 +132,12 @@ import django.db.backends.mysql.features as mysql_features
 if hasattr(mysql_features, 'DatabaseFeatures'):
     mysql_features.DatabaseFeatures.can_return_columns_from_insert = False
     mysql_features.DatabaseFeatures.can_return_rows_from_bulk_insert = False
+
+# Email Configuration (Gmail SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'assignhub1808@gmail.com'
+EMAIL_HOST_PASSWORD = 'uidyhxznjfocmykl'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

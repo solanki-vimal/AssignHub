@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import Course, Batch
+from .models import Course, Batch, Department
+
+@admin.register(Department)
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
+    search_fields = ('name',)
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):

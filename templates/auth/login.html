@@ -76,7 +76,7 @@
     </div>
 
     <div class="flex items-center justify-end">
-        <button type="button" class="text-sm text-teal-600 hover:text-teal-700 font-medium">Forgot Password?</button>
+        <a href="{% url 'accounts:password_reset' %}" class="text-sm text-teal-600 hover:text-teal-700 font-medium">Forgot Password?</a>
     </div>
 
     <button type="submit" class="w-full py-5 bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white text-base rounded-xl shadow-lg shadow-teal-500/25 transition-all font-semibold">
