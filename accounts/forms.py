@@ -47,18 +47,20 @@ class UserRegistrationForm(forms.ModelForm):
         })
     )
     
-    batch_choice = forms.ModelChoiceField(
-        queryset=Batch.objects.all(),
+    # Semester selection
+    semester = forms.IntegerField(
         required=False,
-        empty_label="Select Batch",
-        widget=forms.Select(attrs={
+        min_value=1,
+        max_value=8,
+        widget=forms.NumberInput(attrs={
+            'placeholder': 'Enter Semester (e.g. 1)',
             'class': 'w-full px-4 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors'
         })
     )
 
     class Meta:
         model = User
-        fields = ['role', 'contact_no', 'enrollment_no', 'faculty_id', 'department', 'batch']
+        fields = ['role', 'contact_no', 'enrollment_no', 'faculty_id', 'department', 'semester']
         widgets = {
             'role': forms.HiddenInput(),
             'contact_no': forms.TextInput(attrs={
@@ -74,7 +76,6 @@ class UserRegistrationForm(forms.ModelForm):
                 'class': 'w-full px-4 py-5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:bg-white focus:border-teal-500 transition-colors'
             }),
             'department': forms.HiddenInput(),
-            'batch': forms.HiddenInput(),
         }
 
     def clean(self):
@@ -103,14 +104,11 @@ class UserRegistrationForm(forms.ModelForm):
         if dept:
             user.department = dept.name
             
-        batch_obj = self.cleaned_data.get('batch_choice')
-        if batch_obj:
-            user.batch = batch_obj.name
+        semester_val = self.cleaned_data.get('semester')
+        if semester_val:
+            user.semester = semester_val
 
         if commit:
             user.save()
-            # If it's a student, add them to the Batch M2M
-            if user.role == 'student' and batch_obj:
-                batch_obj.students.add(user)
                 
         return user
