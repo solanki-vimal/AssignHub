@@ -154,33 +154,29 @@ def student_assignment_detail(request, pk):
         if not files:
             messages.error(request, 'Please select at least one file to upload.')
         else:
+            has_valid_upload = False
             for file in files:
-                valid = True
-                # In a real app we would check file types / size here as defined in Assignment model
-                # e.g., if assignment.allowed_file_types != 'all' ...
-                
                 if file.size > (assignment.max_file_size_mb * 1024 * 1024):
                     messages.error(request, f"File {file.name} exceeds the {assignment.max_file_size_mb}MB limit.")
-                    valid = False
-                    
-                if valid:
+                else:
                     SubmissionFile.objects.create(submission=submission, file=file)
+                    has_valid_upload = True
             
-            # Simple assumption: first file upload turns status to 'submitted'
-            if submission.status == 'pending':
-                submission.status = 'submitted'
-                submission.save()
-                
-                # Notify faculty
-                create_notification(
-                    user=assignment.created_by,
-                    title="New Submission",
-                    message=f"{request.user.get_full_name() or request.user.email} submitted '{assignment.title}'.",
-                    link=f"/dashboard/faculty/submissions/{submission.pk}/",
-                    notification_type='submission'
-                )
-                
-            messages.success(request, 'Files successfully uploaded.')
+            if has_valid_upload:
+                if submission.status == 'pending':
+                    submission.status = 'submitted'
+                    submission.save()
+                    
+                    # Notify faculty
+                    create_notification(
+                        user=assignment.created_by,
+                        title="New Submission",
+                        message=f"{request.user.get_full_name() or request.user.email} submitted '{assignment.title}'.",
+                        link=f"/dashboard/faculty/submissions/{submission.pk}/",
+                        notification_type='submission'
+                    )
+                    
+                messages.success(request, 'Files successfully uploaded.')
             return redirect('dashboard:student_assignment_detail', pk=pk)
 
     context = {

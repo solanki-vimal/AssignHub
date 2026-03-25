@@ -73,7 +73,7 @@
             {% if item.files_count > 0 %}
             <a href="{% url 'dashboard:faculty_submission_detail' item.pk %}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors shrink-0">
-                <i data-lucide="eye" class="w-4 h-4"></i> Review
+                <i data-lucide="eye" class="w-4 h-4"></i> {% if item.status == 'evaluated' %}View Evaluation{% else %}Review{% endif %}
             </a>
             {% else %}
             <span class="text-xs text-slate-400 italic shrink-0">Not submitted</span>

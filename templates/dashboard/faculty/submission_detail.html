@@ -110,7 +110,7 @@
                 <button type="submit"
                         class="w-full px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="check-circle" class="w-4 h-4"></i>
-                    Save Evaluation
+                    {% if submission.status == 'evaluated' %}Update Evaluation{% else %}Save Evaluation{% endif %}
                 </button>
             </form>
         </div>
