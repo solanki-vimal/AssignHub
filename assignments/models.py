@@ -32,9 +32,12 @@ class Assignment(models.Model):
     def __str__(self):
         return self.title
 
+def assignment_attachment_path(instance, filename):
+    return f"assignments/assignment_{instance.assignment.id}/attachments/{filename}"
+
 class AssignmentAttachment(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='attachments')
-    file = models.FileField(upload_to='assignments/attachments/')
+    file = models.FileField(upload_to=assignment_attachment_path)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -80,3 +83,8 @@ class SubmissionFile(models.Model):
 
     def __str__(self):
         return f"File for {self.submission}"
+
+    @property
+    def filename(self):
+        import os
+        return os.path.basename(self.file.name)

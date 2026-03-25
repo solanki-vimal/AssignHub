@@ -124,13 +124,13 @@
             <div class="mb-5 space-y-2">
                 <p class="text-sm text-slate-600 mb-2 font-medium">Uploaded Files:</p>
                 {% for file in submission.files.all %}
-                <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50">
+                <a href="{{ file.file.url }}" target="_blank" class="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors group">
                     <div class="flex items-center gap-3 overflow-hidden">
-                        <i data-lucide="file" class="w-4 h-4 text-slate-400 shrink-0"></i>
-                        <span class="text-sm text-slate-700 truncate font-medium">{{ file.file.name }}</span>
+                        <i data-lucide="file" class="w-4 h-4 text-indigo-400 shrink-0 group-hover:text-indigo-600 transition-colors"></i>
+                        <span class="text-sm text-slate-700 truncate font-medium group-hover:text-indigo-700 transition-colors">{{ file.filename }}</span>
                     </div>
                     <span class="text-xs text-slate-500 shrink-0">{{ file.uploaded_at|date:"M d, H:i" }}</span>
-                </div>
+                </a>
                 {% endfor %}
             </div>
             {% endif %}

@@ -13,25 +13,25 @@ def student_dashboard(request):
 
     total_courses = all_courses.count()
 
-    # Fetch assignments related to these courses that are published
-    from assignments.models import Assignment
-    assignments = Assignment.objects.filter(
-        batch__in=request.user.enrolled_batches.all(),
-        published=True
-    ).order_by('due_date')
-
-    # Total unsubmitted assignments (simplified logic for now: all published batch assignments)
-    # We will refine 'upcoming' vs 'completed' once the Submission model is created.
-    upcoming_assignments = assignments.count()
-    recent_assignments = assignments[:5]
-
     # Calculate completed assignments and average score from Submissions
-    from assignments.models import Submission
+    from assignments.models import Assignment, Submission
     from django.db.models import Sum
     
     submissions = Submission.objects.filter(student=request.user)
-    completed_assignments = submissions.filter(status__in=['submitted', 'late', 'evaluated']).count()
+    completed_submissions = submissions.filter(status__in=['submitted', 'late', 'evaluated'])
+    completed_assignment_ids = completed_submissions.values_list('assignment_id', flat=True)
     
+    completed_assignments = completed_submissions.count()
+
+    # Fetch assignments related to these courses that are published, excluding completed ones
+    upcoming_assignments_qs = Assignment.objects.filter(
+        batch__in=request.user.enrolled_batches.all(),
+        published=True
+    ).exclude(id__in=completed_assignment_ids).order_by('due_date')
+
+    upcoming_assignments = upcoming_assignments_qs.count()
+    recent_assignments = upcoming_assignments_qs[:5]
+
     evaluated_submissions = submissions.filter(status='evaluated', marks_obtained__isnull=False)
     if evaluated_submissions.exists():
         total_obtained = sum(s.marks_obtained for s in evaluated_submissions)
