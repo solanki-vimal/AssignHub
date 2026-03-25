@@ -41,6 +41,13 @@ def profile_view(request):
                     return redirect('dashboard:profile')
         
     batches = Batch.objects.filter(is_archived=False).order_by('name')
+
+    # Self-healing: sync User.batch if it's missing but M2M has data
+    if user.role == 'student' and not user.batch:
+        first_enrolled = user.enrolled_batches.first()
+        if first_enrolled:
+            user.batch = first_enrolled.name
+            user.save(update_fields=['batch'])
     
     if user.role == 'student':
         layout_name = 'layouts/base_student.html'

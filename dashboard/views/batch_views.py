@@ -119,9 +119,16 @@ def admin_manage_batch_students(request, pk):
             student = get_object_or_404(User, pk=student_id, role='student')
             if action == 'add':
                 batch.students.add(student)
+                # Sync User.batch CharField
+                student.batch = batch.name
+                student.save(update_fields=['batch'])
                 messages.success(request, f"Added student {student.first_name} to {batch.name}.")
             elif action == 'remove':
                 batch.students.remove(student)
+                # If removed student has no other enrolled batches, clear the field
+                remaining = student.enrolled_batches.first()
+                student.batch = remaining.name if remaining else ''
+                student.save(update_fields=['batch'])
                 messages.success(request, f"Removed student {student.first_name} from {batch.name}.")
                 
         return redirect('dashboard:admin_manage_batch_students', pk=pk)

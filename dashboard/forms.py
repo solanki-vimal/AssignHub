@@ -93,6 +93,7 @@ class AdminBatchForm(forms.ModelForm):
             except: pass
 
     def save(self, commit=True):
+        old_name = self.instance.name if self.instance.pk else None
         instance = super().save(commit=False)
         start_date = self.cleaned_data.get('start_date')
         end_date = self.cleaned_data.get('end_date')
@@ -107,6 +108,10 @@ class AdminBatchForm(forms.ModelForm):
         
         if commit:
             instance.save()
+            # If batch name changed, sync the User.batch CharField for all enrolled students
+            new_name = instance.name
+            if old_name and old_name != new_name:
+                instance.students.filter(batch=old_name).update(batch=new_name)
         return instance
 
 class UserProfileForm(forms.ModelForm):
@@ -141,6 +146,12 @@ class UserProfileForm(forms.ModelForm):
         # We want to store names in the user model as per existing logic
         self.fields['batch'].to_field_name = 'name'
         self.fields['department'].to_field_name = 'name'
+
+        # Restrict students from editing their own batch
+        if self.instance and self.instance.role == 'student':
+            self.fields['batch'].disabled = True
+            self.fields['batch'].required = False
+            # Optional: restrict other fields if needed, but 'batch' was specifically requested.
 
     def save(self, commit=True):
         instance = super().save(commit=False)
