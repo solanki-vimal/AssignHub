@@ -4,8 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from academic.models import Course, Batch
-from academic.constants import DEPARTMENTS
+from academic.models import Course, Batch, Department
 from dashboard.notifications import create_notification
 
 @login_required
@@ -107,14 +106,24 @@ def admin_users(request):
                 
                 # Notify Admin about new user
                 create_notification(
-                    user=request.user, # The admin performing the action
+                    user=request.user, 
                     title="User Created",
-                    message=f"New {role} account created for {email}.",
+                    message=f"New {role} account created for {email}. A welcome email has been sent.",
                     link="/dashboard/admin/users/",
                     notification_type='system'
                 )
                 
-                messages.success(request, f"User {email} created successfully.")
+                # Send welcome email (standard reset email works here too if we want them to set pwd)
+                from django.contrib.auth.forms import PasswordResetForm
+                form = PasswordResetForm({'email': email})
+                if form.is_valid():
+                    form.save(
+                        request=request,
+                        email_template_name='auth/password_reset_email.html',
+                        subject_template_name='auth/password_reset_subject.txt',
+                    )
+                
+                messages.success(request, f"User {email} created successfully. Instructions sent to their email.")
                 
         elif action == 'edit':
             user_id = request.POST.get('user_id')
@@ -157,17 +166,21 @@ def admin_users(request):
                 target_user.delete()
                 messages.success(request, f"User {user_email} has been permanently deleted.")
                 
-        elif action == 'reset_password':
+        elif action == 'send_reset_email':
             user_id = request.POST.get('user_id')
-            new_password = request.POST.get('new_password')
             target_user = get_object_or_404(User, pk=user_id)
             
-            if new_password:
-                target_user.set_password(new_password)
-                target_user.save()
-                messages.success(request, f"Password for {target_user.email} has been reset successfully.")
+            from django.contrib.auth.forms import PasswordResetForm
+            form = PasswordResetForm({'email': target_user.email})
+            if form.is_valid():
+                form.save(
+                    request=request,
+                    email_template_name='auth/password_reset_email.html',
+                    subject_template_name='auth/password_reset_subject.txt',
+                )
+                messages.success(request, f"Password reset instructions have been sent to {target_user.email}.")
             else:
-                messages.error(request, "New password cannot be empty.")
+                messages.error(request, "Failed to send reset email.")
                 
         return redirect('dashboard:admin_users')
 
@@ -175,7 +188,7 @@ def admin_users(request):
     users = User.objects.all().prefetch_related('enrolled_batches').order_by('-date_joined')
     context = {
         'users': users,
-        'departments': DEPARTMENTS,
+        'departments': Department.objects.all(),
         'batches': batches,
     }
     return render(request, 'dashboard/admin/users.html', context)

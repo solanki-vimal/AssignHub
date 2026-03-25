@@ -90,12 +90,3 @@ function openEditUserModal(id, firstName, lastName, email, role, deptOrBatch, en
     toggleModal('edit-user-modal');
 }
 
-function openResetPasswordModal(id, email) {
-    document.getElementById('reset-pwd-user-id').value = id;
-    document.getElementById('reset-pwd-email').textContent = email;
-    // reset input
-    const input = document.querySelector('input[name="new_password"]');
-    if (input) input.value = '';
-
-    toggleModal('reset-password-modal');
-}
