@@ -23,6 +23,8 @@ def admin_dashboard(request):
     faculty_percent = round((faculty_count / total_users * 100)) if total_users > 0 else 0
     admin_percent = round((admin_count / total_users * 100)) if total_users > 0 else 0
     
+    from assignments.models import Submission
+    
     context = {
         'total_users': total_users,
         'student_count': student_count,
@@ -33,6 +35,7 @@ def admin_dashboard(request):
         'admin_percent': admin_percent,
         'active_courses': Course.objects.filter(is_archived=False).count(),
         'total_batches': Batch.objects.filter(is_archived=False).count(),
+        'total_submissions': Submission.objects.count(),
     }
     return render(request, 'dashboard/admin/dashboard.html', context)
 

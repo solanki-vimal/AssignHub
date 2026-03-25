@@ -4,6 +4,11 @@
 
 {% block header_title %}Admin Dashboard{% endblock %}
 
+{% block extra_head %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
 {% block content %}
 <!-- Welcome Section -->
 <div class="mb-8 flex items-center justify-between animate-fade-in-up">
@@ -60,15 +65,15 @@
             <p class="text-sm font-medium text-slate-500">Total Batches</p>
         </div>
     </div>
-    <!-- Stat 4 Placeholder -->
-    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm opacity-60">
+    <!-- Stat 4 -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-4">
             <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
-                <i data-lucide="archive" class="w-6 h-6 text-amber-600"></i>
+                <i data-lucide="check-square" class="w-6 h-6 text-amber-600"></i>
             </div>
         </div>
         <div>
-            <h4 class="text-3xl font-bold text-slate-900 mb-1">0</h4>
+            <h4 class="text-3xl font-bold text-slate-900 mb-1">{{ total_submissions }}</h4>
             <p class="text-sm font-medium text-slate-500">Total Submissions</p>
         </div>
     </div>
@@ -78,38 +83,12 @@
     <!-- User Distribution (Full Width now or centered) -->
     <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <h3 class="text-lg font-semibold text-slate-900 mb-4 text-center">User Distribution</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-slate-600 font-medium">Students</span>
-                    <span class="font-bold text-slate-900">{{ student_count }}</span>
-                </div>
-                <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-teal-500 rounded-full transition-all duration-1000"
-                        style="--width: {{ student_percent|default:0 }}%; width: var(--width);">
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-slate-600 font-medium">Faculty</span>
-                    <span class="font-bold text-slate-900">{{ faculty_count }}</span>
-                </div>
-                <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-blue-500 rounded-full transition-all duration-1000"
-                        style="--width: {{ faculty_percent|default:0 }}%; width: var(--width);">
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-slate-600 font-medium">Admins</span>
-                    <span class="font-bold text-slate-900">{{ admin_count }}</span>
-                </div>
-                <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-indigo-500 rounded-full transition-all duration-1000"
-                        style="--width: {{ admin_percent|default:0 }}%; width: var(--width);">
-                    </div>
+        <div class="flex justify-center items-center">
+            <div class="w-full max-w-sm relative">
+                <canvas id="userDistributionChart"></canvas>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style="padding-bottom: 2rem;">
+                    <span class="text-4xl font-bold text-slate-800">{{ total_users }}</span>
+                    <span class="text-sm font-medium text-slate-500 mt-1">Total Users</span>
                 </div>
             </div>
         </div>
@@ -126,4 +105,43 @@
         Manage Batches
     </a>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('userDistributionChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Students', 'Faculty', 'Admins'],
+                datasets: [{
+                    data: [{{ student_count }}, {{ faculty_count }}, {{ admin_count }}],
+                    backgroundColor: [
+                        '#14b8a6', // teal-500
+                        '#3b82f6', // blue-500
+                        '#6366f1'  // indigo-500
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 14,
+                                weight: '500'
+                            },
+                            padding: 20
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    });
+</script>
 {% endblock %}
