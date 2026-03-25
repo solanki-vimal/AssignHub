@@ -94,6 +94,14 @@ def faculty_courses(request):
             status__in=['submitted', 'pending']
         ).count()
         
+        # Count evaluated submissions
+        evaluated_submissions = Submission.objects.filter(
+            assignment__course=course,
+            assignment__created_by=request.user,
+            status='evaluated'
+        ).count()
+        eval_percent = round((evaluated_submissions / total_submissions) * 100) if total_submissions > 0 else 0
+        
         course_data.append({
             'course': course,
             'student_count': student_count,
@@ -101,6 +109,8 @@ def faculty_courses(request):
             'active_assignments': active_assignments,
             'total_submissions': total_submissions,
             'pending_submissions': pending_submissions,
+            'evaluated_submissions': evaluated_submissions,
+            'eval_percent': eval_percent,
         })
     
     context = {

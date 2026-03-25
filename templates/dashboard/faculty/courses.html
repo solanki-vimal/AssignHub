@@ -61,10 +61,10 @@
             <div class="mb-4">
                 <div class="flex items-center justify-between text-sm mb-2">
                     <span class="text-slate-500">Evaluation Progress</span>
-                    <span class="font-medium text-slate-700">0%</span>
+                    <span class="font-medium text-slate-700">{{ item.evaluated_submissions }}/{{ item.total_submissions }} ({{ item.eval_percent }}%)</span>
                 </div>
                 <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-blue-600 rounded-full" style="width: 0%"></div>
+                    <div class="h-full bg-blue-600 rounded-full transition-all duration-500" style="width: {{ item.eval_percent }}%"></div>
                 </div>
             </div>
 
