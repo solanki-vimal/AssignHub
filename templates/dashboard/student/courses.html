@@ -31,7 +31,7 @@
     {% for item in course_data %}
     {% with course=item.course %}
     <div class="course-card bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col group" data-search="{{ course.name|lower }} {{ course.code|lower }}">
-        <div class="h-32 bg-gradient-to-r from-indigo-500 to-purple-600 relative p-6 flex flex-col justify-end">
+        <div class="h-32 bg-gradient-to-r from-teal-500 to-blue-600 relative p-6 flex flex-col justify-end">
             <div class="absolute top-4 right-4">
                 <span class="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-lg text-white text-xs font-semibold border border-white/20 shadow-sm">
                     {{ course.code }}

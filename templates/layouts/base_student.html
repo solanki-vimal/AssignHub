@@ -29,7 +29,7 @@
             <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div
-                        class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        class="w-10 h-10 bg-gradient-to-br from-teal-500 to-blue-600 rounded-xl flex items-center justify-center">
                         <i data-lucide="book-open" class="w-5 h-5 text-white"></i>
                     </div>
                     <span class="text-xl font-bold text-slate-800">AssignHub</span>
@@ -47,21 +47,21 @@
                 <ul class="space-y-1">
                     <li>
                         <a href="{% url 'dashboard:student_dashboard' %}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'student_dashboard' %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'student_dashboard' %}bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-md shadow-teal-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
                             <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                             <span class="font-medium">Dashboard</span>
                         </a>
                     </li>
                     <li>
                         <a href="{% url 'dashboard:student_courses' %}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'student_courses' %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'student_courses' %}bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-md shadow-teal-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
                             <i data-lucide="book-open" class="w-5 h-5"></i>
                             <span class="font-medium">My Courses</span>
                         </a>
                     </li>
                     <li>
                         <a href="{% url 'dashboard:student_assignments' %}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if 'student_assignment' in request.resolver_match.url_name %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {% if 'student_assignment' in request.resolver_match.url_name %}bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-md shadow-teal-500/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
                             <i data-lucide="file-text" class="w-5 h-5"></i>
                             <span class="font-medium">Assignments</span>
                         </a>
