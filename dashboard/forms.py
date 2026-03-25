@@ -108,3 +108,50 @@ class AdminBatchForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+class UserProfileForm(forms.ModelForm):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
+    class Meta:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        model = User
+        fields = ['first_name', 'last_name', 'contact_no', 'enrollment_no', 'batch', 'faculty_id', 'department', 'profile_pic']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500'}),
+            'last_name': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500'}),
+            'contact_no': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500', 'placeholder': '+91'}),
+            'enrollment_no': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500', 'placeholder': 'e.g. 21CE000'}),
+            'faculty_id': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500', 'placeholder': 'e.g. FAC001'}),
+            'batch': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white'}),
+            'department': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-white'}),
+            'profile_pic': forms.FileInput(attrs={'class': 'hidden', 'id': 'profile-pic-input', 'accept': 'image/*'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Handle dynamic choices
+        from academic.models import Batch, Department
+        self.fields['batch'].queryset = Batch.objects.filter(is_archived=False).order_by('name')
+        self.fields['batch'].empty_label = "-- Select Batch --"
+        self.fields['department'].queryset = Department.objects.all()
+        self.fields['department'].empty_label = "-- Select Department --"
+        
+        # We want to store names in the user model as per existing logic
+        self.fields['batch'].to_field_name = 'name'
+        self.fields['department'].to_field_name = 'name'
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+            # Handle M2M synchronization for Batch
+            if instance.role == 'student' and instance.batch:
+                from academic.models import Batch
+                batch_obj = Batch.objects.filter(name=instance.batch).first()
+                if batch_obj:
+                    # Clear from other batches first if they should only be in one
+                    instance.enrolled_batches.clear()
+                    batch_obj.students.add(instance)
+        return instance

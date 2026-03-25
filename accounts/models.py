@@ -24,6 +24,7 @@ class User(AbstractUser):
     faculty_id = models.CharField(max_length=20, blank=True, null=True)
     department = models.CharField(max_length=100, blank=True, null=True)
     batch = models.CharField(max_length=20, blank=True, null=True)
+    profile_pic = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.username} ({self.role})"
