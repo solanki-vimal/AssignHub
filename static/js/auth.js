@@ -1,7 +1,17 @@
+/**
+ * AssignHub Authentication & Common Utilities
+ * Handles password toggling and role-based field switching.
+ */
+
+/**
+ * Toggles input type between password and text
+ * @param {string} inputId - ID of the password input field
+ * @param {string} iconId - ID of the Lucide icon element
+ */
 function togglePasswordVisibility(inputId, iconId) {
     const input = document.getElementById(inputId);
     const icon = document.getElementById(iconId);
-
+    
     if (input && icon) {
         if (input.type === 'password') {
             input.type = 'text';
@@ -10,38 +20,48 @@ function togglePasswordVisibility(inputId, iconId) {
             input.type = 'password';
             icon.setAttribute('data-lucide', 'eye');
         }
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons(); // Re-render the icon
+        
+        // Re-render Lucide icons if the library is available
+        if (window.lucide) {
+            lucide.createIcons();
         }
     }
 }
 
-// Form logic for registration
+/**
+ * Handles role-based conditional field toggling in registration
+ * @param {string} role - 'student' or 'faculty'
+ */
+function handleRoleSwitch(role) {
+    // Update hidden role field for the Django form
+    const roleInput = document.querySelector('input[name="role"]');
+    if (roleInput) roleInput.value = role;
+    
+    // Toggle container visibility for role-specific fields
+    const studentContainer = document.getElementById('student-only-fields');
+    const facultyContainer = document.getElementById('faculty-only-fields');
+    
+    if (studentContainer && facultyContainer) {
+        if (role === 'student') {
+            studentContainer.classList.remove('hidden');
+            facultyContainer.classList.add('hidden');
+        } else if (role === 'faculty') {
+            studentContainer.classList.add('hidden');
+            facultyContainer.classList.remove('hidden');
+        }
+    }
+}
+
+// Global initialization
 document.addEventListener('DOMContentLoaded', () => {
-    const roleRadios = document.querySelectorAll('.role-radio');
-    const form = document.querySelector('form');
-    const studentFieldsContainer = document.getElementById('student-fields');
-
-    if (roleRadios.length > 0 && form && studentFieldsContainer) {
-        roleRadios.forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                const selectedRole = e.target.value;
-                const inputs = form.querySelectorAll('input:not([name="csrfmiddlewaretoken"]):not([name="role"])');
-                inputs.forEach(input => {
-                    input.value = '';
-                });
-
-                // Show/hide student fields based on role
-                if (selectedRole === 'student') {
-                    studentFieldsContainer.classList.remove('hidden');
-                } else {
-                    studentFieldsContainer.classList.add('hidden');
-                }
-            });
-        });
+    // Initialize Lucide icons if available
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+    
+    // Set initial registration state if we are on the registration page
+    const checkedRole = document.querySelector('input[name="role_selector"]:checked');
+    if (checkedRole) {
+        handleRoleSwitch(checkedRole.value);
     }
 });
-
-if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
-}

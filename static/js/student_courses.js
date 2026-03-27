@@ -1,3 +1,11 @@
+/**
+ * student_courses.js — Student Courses Page
+ *
+ * Client-side search filtering for course cards.
+ * Matches against data-search attribute (course name + code).
+ * Shows an empty state message when no cards match.
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('course-search');
     const courseCards = document.querySelectorAll('.course-card');
@@ -18,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Handle empty state manually if all are hidden
+            // Show/hide "no courses found" empty state
             const existingEmptyMessage = document.getElementById('search-empty-message');
             if (visibleCount === 0 && courseCards.length > 0) {
                 if (!existingEmptyMessage) {

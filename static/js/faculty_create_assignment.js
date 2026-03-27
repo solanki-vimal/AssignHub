@@ -1,5 +1,25 @@
-// faculty_create_assignment.js
+/**
+ * faculty_create_assignment.js — Create/Edit Assignment Page
+ *
+ * Handles:
+ *   - Publish toggle switch (custom UI checkbox)
+ *   - Dynamic batch dropdown filtering based on selected course
+ *   - File input feedback (shows selected file names in dropzone)
+ *
+ * Requires window.ASSIGNMENT_CONFIG to be set by the template:
+ *   {
+ *     publishedCheckboxId: string,
+ *     courseSelectId: string,
+ *     batchSelectId: string,
+ *     courseToBatches: { [courseId]: [{ id, name }] }
+ *   }
+ */
 
+
+/**
+ * Toggles the custom publish toggle switch UI.
+ * Syncs the hidden checkbox state with the visual toggle.
+ */
 function togglePublished() {
     if (!window.ASSIGNMENT_CONFIG) return;
     const checkbox = document.getElementById(window.ASSIGNMENT_CONFIG.publishedCheckboxId);
@@ -20,17 +40,19 @@ function togglePublished() {
     }
 }
 
+
+/**
+ * Rebuilds the batch dropdown based on the selected course.
+ * Uses the courseToBatches mapping from ASSIGNMENT_CONFIG to
+ * show only batches assigned to the selected course.
+ */
 function filterBatches() {
     if (!window.ASSIGNMENT_CONFIG) return;
     const courseSelect = document.getElementById(window.ASSIGNMENT_CONFIG.courseSelectId);
     const batchSelect = document.getElementById(window.ASSIGNMENT_CONFIG.batchSelectId);
     const selectedCourseId = courseSelect.value;
     const previousBatchId = batchSelect.value;
-
     const courseToBatches = window.ASSIGNMENT_CONFIG.courseToBatches;
-
-    // Save current selected batch if any, to restore after rebuild if still valid
-    const preservedBatchId = previousBatchId;
 
     // Clear existing options
     batchSelect.innerHTML = '';
@@ -42,7 +64,8 @@ function filterBatches() {
                 const option = document.createElement('option');
                 option.value = batch.id;
                 option.textContent = batch.name;
-                if (batch.id === preservedBatchId) {
+                // Preserve previous selection if still valid
+                if (batch.id === previousBatchId) {
                     option.selected = true;
                 }
                 batchSelect.appendChild(option);
@@ -61,10 +84,12 @@ function filterBatches() {
     }
 }
 
-// Initialize state
+
+// Initialize all interactive elements on page load
 window.addEventListener('load', () => {
     if (!window.ASSIGNMENT_CONFIG) return;
-    // Toggle state
+
+    // Set initial toggle state for published checkbox
     const checkbox = document.getElementById(window.ASSIGNMENT_CONFIG.publishedCheckboxId);
     if (checkbox && checkbox.checked) {
         const bg = document.getElementById('toggle-bg');
@@ -75,17 +100,16 @@ window.addEventListener('load', () => {
         circle.classList.remove('translate-x-1');
     }
 
-    // Setup initial filtering
+    // Bind course change → batch filter
     const courseSelect = document.getElementById(window.ASSIGNMENT_CONFIG.courseSelectId);
     if (courseSelect) {
         courseSelect.addEventListener('change', filterBatches);
-        filterBatches(); // Run once for initial state
+        filterBatches(); // Set initial batch options
     }
 
-    // File Input Feedback
+    // File input visual feedback in the dropzone
     const fileInput = document.querySelector('input[type="file"][name="attachments"]');
     if (fileInput) {
-        // Cache original text so it restores correctly whether in Create or Edit mode
         const dropzoneText = document.getElementById('dropzone-text');
         const defaultText = dropzoneText ? dropzoneText.textContent : 'Click to upload files';
 
@@ -93,7 +117,7 @@ window.addEventListener('load', () => {
             const files = e.target.files;
             let feedback = document.getElementById('file-upload-feedback');
 
-            // Create feedback container if not exists
+            // Create feedback container if it doesn't exist yet
             if (!feedback) {
                 feedback = document.createElement('div');
                 feedback.id = 'file-upload-feedback';

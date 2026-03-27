@@ -1,39 +1,55 @@
-import os
+"""
+Faculty Submission Review & Grading views.
+
+Handles viewing all student submissions for an assignment and
+evaluating individual submissions with marks and feedback.
+"""
+
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
 from django.contrib import messages
-from django.conf import settings as django_settings
-from assignments.models import Assignment, Submission, SubmissionFile
+from assignments.models import Assignment, Submission
 from dashboard.notifications import create_notification
 
+User = get_user_model()
+
+
+# =============================================================================
+# Submission List (Per Assignment)
+# =============================================================================
 
 @login_required
 def faculty_submission_list(request, assignment_pk):
-    """List all student submissions for a given assignment."""
+    """
+    Lists all students in the assignment's batch alongside their submission status.
+    Combines actual submissions with "pending" placeholders for students
+    who haven't submitted yet, giving a complete class overview.
+    """
     if request.user.role != 'faculty':
         return redirect('home')
 
     assignment = get_object_or_404(Assignment, pk=assignment_pk, created_by=request.user)
 
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-    
+    # All students enrolled in this assignment's batch
     enrolled_students = User.objects.filter(
         role='student',
         enrolled_batches=assignment.batch,
         is_active=True
     ).distinct().order_by('first_name', 'email')
-    
+
+    # Map existing submissions by student ID for fast lookup
     actual_submissions = {
-        s.student_id: s for s in Submission.objects.filter(assignment=assignment).prefetch_related('files')
+        s.student_id: s
+        for s in Submission.objects.filter(assignment=assignment).prefetch_related('files')
     }
-    
+
+    # Build combined list: real submission or "pending" placeholder
     combined_submissions = []
     submitted_count = 0
     evaluated_count = 0
     late_count = 0
-    
+
     for student in enrolled_students:
         sub = actual_submissions.get(student.id)
         if sub:
@@ -52,6 +68,7 @@ def faculty_submission_list(request, assignment_pk):
             elif sub.status == 'late':
                 late_count += 1
         else:
+            # Student hasn't submitted — show as pending
             combined_submissions.append({
                 'student': student,
                 'submission': None,
@@ -60,7 +77,7 @@ def faculty_submission_list(request, assignment_pk):
                 'marks': None,
                 'pk': None
             })
-            
+
     total_students = len(combined_submissions)
     pending_count = total_students - (submitted_count + evaluated_count + late_count)
 
@@ -75,9 +92,17 @@ def faculty_submission_list(request, assignment_pk):
     return render(request, 'dashboard/faculty/submission_list.html', context)
 
 
+# =============================================================================
+# Submission Detail & Grading
+# =============================================================================
+
 @login_required
 def faculty_submission_detail(request, submission_pk):
-    """View a single student's submission, and grade/evaluate it."""
+    """
+    GET:  Shows a student's submission with uploaded files.
+    POST: Saves marks and remarks, sets status to 'evaluated',
+          and notifies the student about the evaluation result.
+    """
     if request.user.role != 'faculty':
         return redirect('home')
 
@@ -101,8 +126,8 @@ def faculty_submission_detail(request, submission_pk):
                 submission.faculty_remarks = remarks
                 submission.status = 'evaluated'
                 submission.save()
-                
-                # Notify student
+
+                # Notify the student about the evaluation
                 create_notification(
                     user=submission.student,
                     title="Evaluation Released",
@@ -110,7 +135,7 @@ def faculty_submission_detail(request, submission_pk):
                     link=f"/dashboard/student/assignments/{submission.assignment.pk}/",
                     notification_type='evaluation'
                 )
-                
+
                 messages.success(request, f"Submission by {submission.student.get_full_name() or submission.student.email} evaluated successfully.")
                 return redirect('dashboard:faculty_submission_list', assignment_pk=submission.assignment.pk)
         except ValueError:

@@ -1,4 +1,10 @@
-// faculty_students.js
+/**
+ * faculty_students.js — Faculty Students Page
+ *
+ * Client-side filtering for the students table.
+ * Filters by search text, course, and batch using data attributes.
+ * Shows a "no students" row when all rows are filtered out.
+ */
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('student-search');
@@ -8,11 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const rows = tableBody ? tableBody.querySelectorAll('tr.student-row') : [];
     const noStudentsRow = document.getElementById('no-students-row');
 
+    /** Filters student rows by search, course, and batch. */
     function filterStudents() {
         const searchTerm = searchInput.value.toLowerCase().trim();
         const courseValue = courseFilter.value.toLowerCase();
         const batchValue = batchFilter.value.toLowerCase();
-        
+
         let visibleCount = 0;
 
         rows.forEach(row => {
@@ -32,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Toggle "no students found" placeholder row
         if (noStudentsRow) {
             noStudentsRow.style.display = visibleCount === 0 ? '' : 'none';
         }

@@ -1,50 +1,68 @@
+"""
+Views for the assignments app.
+
+All views are faculty-only and handle the full assignment CRUD lifecycle:
+  - List assignments with live stats
+  - Create / Edit / Delete assignments
+  - Toggle publish status (draft ↔ published)
+  - Extend deadlines
+  - File attachment management (upload + removal)
+"""
+
 import os
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db.models import Count
 from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings as django_settings
-from .models import Assignment, AssignmentAttachment
+from .models import Assignment, AssignmentAttachment, Submission
 from .forms import AssignmentForm
 from academic.models import Course, Batch
 from dashboard.notifications import notify_batch_students
 
+User = get_user_model()
+
+
+# =============================================================================
+# List Assignments
+# =============================================================================
 
 @login_required
 def faculty_assignments(request):
+    """
+    Lists all assignments created by the logged-in faculty.
+    Computes per-assignment stats: submitted, evaluated, late, and pending counts.
+    """
     if request.user.role != 'faculty':
         return redirect('home')
-        
+
     assignments = Assignment.objects.filter(
         created_by=request.user
     ).select_related('course', 'batch').prefetch_related('attachments').order_by('-created_at')
-    
-    # Compute stats for each assignment
-    from .models import Submission
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-    
+
     for assignment in assignments:
-        # Total students assigned to this assignment (via its batch)
+        # Count total students enrolled in this assignment's batch
         total_students = User.objects.filter(
             role='student',
             enrolled_batches=assignment.batch,
             is_active=True
         ).distinct().count()
-        
+
+        # Count submissions by status
         assignment.submitted_count = Submission.objects.filter(assignment=assignment, status='submitted').count()
         assignment.evaluated_count = Submission.objects.filter(assignment=assignment, status='evaluated').count()
         assignment.late_count = Submission.objects.filter(assignment=assignment, status='late').count()
-        
-        # Pending is everyone who hasn't submitted/evaluated yet
+
+        # Pending = total students minus those who have submitted/evaluated/late
         completed_count = assignment.submitted_count + assignment.evaluated_count + assignment.late_count
         assignment.pending_count = max(0, total_students - completed_count)
-        
+
     faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False)
-    
+
     context = {
         'assignments': assignments,
         'faculty_courses': faculty_courses,
@@ -52,11 +70,19 @@ def faculty_assignments(request):
     return render(request, 'dashboard/faculty/assignments.html', context)
 
 
+# =============================================================================
+# Create Assignment
+# =============================================================================
+
 @login_required
 def faculty_create_assignment(request):
+    """
+    GET:  Renders the assignment creation form with dynamic course/batch dropdowns.
+    POST: Saves the assignment, uploads file attachments, and notifies students if published.
+    """
     if request.user.role != 'faculty':
         return redirect('home')
-        
+
     if request.method == 'POST':
         form = AssignmentForm(request.POST, faculty=request.user)
         if form.is_valid():
@@ -64,12 +90,13 @@ def faculty_create_assignment(request):
                 assignment = form.save(commit=False)
                 assignment.created_by = request.user
                 assignment.save()
-                
-                # Handle file attachments
+
+                # Save uploaded file attachments
                 files = request.FILES.getlist('attachments')
                 for f in files:
                     AssignmentAttachment.objects.create(assignment=assignment, file=f)
-                
+
+                # Notify batch students if assignment is published immediately
                 if assignment.published:
                     notify_batch_students(
                         batch=assignment.batch,
@@ -78,7 +105,7 @@ def faculty_create_assignment(request):
                         link=f"/dashboard/student/assignments/{assignment.pk}/",
                         notification_type='assignment'
                     )
-                
+
                 messages.success(request, f"Assignment '{assignment.title}' created successfully.")
                 return redirect('dashboard:faculty_assignments')
             except Exception as e:
@@ -87,18 +114,19 @@ def faculty_create_assignment(request):
             messages.error(request, "Please correct the errors below.")
     else:
         form = AssignmentForm(faculty=request.user)
-                
+
+    # Build course → batches JSON mapping for dynamic dropdown filtering in JS
     faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False).annotate(
         students_count=Count('batches__students', distinct=True)
     ).prefetch_related('batches')
-    
+
     course_batches_data = {}
     for course in faculty_courses:
         course_batches_data[str(course.id)] = [
             {"id": str(batch.id), "name": f"{batch.name} ({batch.academic_year})"}
             for batch in course.batches.all()
         ]
-    
+
     context = {
         'form': form,
         'faculty_courses': faculty_courses,
@@ -107,16 +135,17 @@ def faculty_create_assignment(request):
     return render(request, 'dashboard/faculty/create_assignment.html', context)
 
 
+# =============================================================================
+# View Assignment Detail
+# =============================================================================
+
 @login_required
 def faculty_view_assignment(request, pk):
+    """Shows a single assignment's details with submission stats."""
     if request.user.role != 'faculty':
         return redirect('home')
-        
-    assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
 
-    from assignments.models import Submission
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
+    assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
 
     total_students = User.objects.filter(
         role='student',
@@ -127,9 +156,9 @@ def faculty_view_assignment(request, pk):
     submitted_count = Submission.objects.filter(
         assignment=assignment, status__in=['submitted', 'late', 'evaluated']
     ).count()
-    
+
     pending_count = max(0, total_students - submitted_count)
-    
+
     context = {
         'assignment': assignment,
         'submitted_count': submitted_count,
@@ -138,20 +167,28 @@ def faculty_view_assignment(request, pk):
     return render(request, 'dashboard/faculty/assignment_detail.html', context)
 
 
+# =============================================================================
+# Edit Assignment
+# =============================================================================
+
 @login_required
 def faculty_edit_assignment(request, pk):
+    """
+    GET:  Pre-populates the form with existing assignment data.
+    POST: Updates the assignment, handles adding new files and removing existing attachments.
+    """
     if request.user.role != 'faculty':
         return redirect('home')
-        
+
     assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
-    
+
     if request.method == 'POST':
         form = AssignmentForm(request.POST, instance=assignment, faculty=request.user)
         if form.is_valid():
             try:
                 form.save()
-                
-                # Handle removing existing attachments (DB record + physical file)
+
+                # Remove selected existing attachments (DB record + physical file)
                 remove_ids = request.POST.getlist('remove_attachments')
                 if remove_ids:
                     attachments_to_remove = AssignmentAttachment.objects.filter(
@@ -163,12 +200,12 @@ def faculty_edit_assignment(request, pk):
                             if os.path.isfile(abs_path):
                                 os.remove(abs_path)
                     attachments_to_remove.delete()
-                    
-                # Handle NEW file attachments
+
+                # Upload new file attachments
                 files = request.FILES.getlist('attachments')
                 for f in files:
                     AssignmentAttachment.objects.create(assignment=assignment, file=f)
-                
+
                 messages.success(request, f"Assignment '{assignment.title}' updated successfully.")
                 return redirect('dashboard:faculty_view_assignment', pk=assignment.pk)
             except Exception as e:
@@ -177,18 +214,19 @@ def faculty_edit_assignment(request, pk):
             messages.error(request, "Please correct the errors below.")
     else:
         form = AssignmentForm(instance=assignment, faculty=request.user)
-                
+
+    # Build course → batches JSON mapping (same logic as create)
     faculty_courses = Course.objects.filter(faculty=request.user, is_archived=False).annotate(
         students_count=Count('batches__students', distinct=True)
     ).prefetch_related('batches')
-    
+
     course_batches_data = {}
     for course in faculty_courses:
         course_batches_data[str(course.id)] = [
             {"id": str(batch.id), "name": f"{batch.name} ({batch.academic_year})"}
             for batch in course.batches.all()
         ]
-    
+
     context = {
         'form': form,
         'assignment': assignment,
@@ -199,17 +237,23 @@ def faculty_edit_assignment(request, pk):
     return render(request, 'dashboard/faculty/create_assignment.html', context)
 
 
+# =============================================================================
+# Toggle Publish / Unpublish
+# =============================================================================
+
 @login_required
 @require_POST
 def faculty_toggle_publish(request, pk):
+    """Flips published status (draft ↔ published). Notifies students when newly published."""
     if request.user.role != 'faculty':
         return redirect('home')
-        
+
     assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
-    
+
     assignment.published = not assignment.published
     assignment.save()
-    
+
+    # Notify students only when publishing (not when unpublishing)
     if assignment.published:
         notify_batch_students(
             batch=assignment.batch,
@@ -218,40 +262,49 @@ def faculty_toggle_publish(request, pk):
             link=f"/dashboard/student/assignments/{assignment.pk}/",
             notification_type='assignment'
         )
-    
+
     status_text = "published" if assignment.published else "unpublished (saved as draft)"
     messages.success(request, f"Assignment '{assignment.title}' is now {status_text}.")
-    
+
     return redirect(request.META.get('HTTP_REFERER', 'dashboard:faculty_assignments'))
 
+
+# =============================================================================
+# Delete Assignment
+# =============================================================================
 
 @login_required
 @require_POST
 def faculty_delete_assignment(request, pk):
+    """Permanently deletes an assignment and all related submissions/files."""
     if request.user.role != 'faculty':
         return redirect('home')
-        
+
     assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
-    
+
     title = assignment.title
     assignment.delete()
-    
+
     messages.success(request, f"Assignment '{title}' was deleted successfully.")
-    
     return redirect('dashboard:faculty_assignments')
 
+
+# =============================================================================
+# Extend Deadline
+# =============================================================================
 
 @login_required
 @require_POST
 def faculty_extend_deadline(request, pk):
+    """Updates the due_date and notifies all batch students about the extension."""
     if request.user.role != 'faculty':
         return redirect('home')
-        
+
     assignment = get_object_or_404(Assignment, pk=pk, created_by=request.user)
-    
+
     from dashboard.forms import DeadlineExtensionForm
     form = DeadlineExtensionForm(request.POST, instance=assignment)
-    
+
     if form.is_valid():
         form.save()
         notify_batch_students(
@@ -264,5 +317,5 @@ def faculty_extend_deadline(request, pk):
         messages.success(request, f"Deadline for '{assignment.title}' extended successfully.")
     else:
         messages.error(request, "Invalid date provided. Please try again.")
-        
+
     return redirect(request.META.get('HTTP_REFERER', 'dashboard:faculty_assignments'))

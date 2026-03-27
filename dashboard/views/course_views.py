@@ -1,3 +1,10 @@
+"""
+Admin Course Management views.
+
+Handles course CRUD, archive/unarchive, and notifies faculty
+when they are assigned to or reassigned to a course.
+"""
+
 import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
@@ -7,14 +14,25 @@ from academic.models import Course
 from academic.constants import DEPARTMENTS, SEMESTERS
 from dashboard.notifications import create_notification
 
+User = get_user_model()
+
+
+# =============================================================================
+# List & Create Courses
+# =============================================================================
+
 @login_required
 def admin_courses(request):
+    """
+    GET:  Lists all courses (active or archived based on query param).
+    POST: Creates a new course with code, name, semester, department, and optional faculty.
+          Notifies the assigned faculty via in-app notification.
+    """
     if request.user.role != 'admin':
         return redirect('home')
-        
-    User = get_user_model()
+
     faculty_list = User.objects.filter(role='faculty').order_by('first_name')
-    
+
     if request.method == 'POST':
         code = request.POST.get('code')
         name = request.POST.get('name')
@@ -22,15 +40,17 @@ def admin_courses(request):
         department = request.POST.get('department')
         status = request.POST.get('status', 'active')
         faculty_id = request.POST.get('faculty_id')
-        
+
         if not all([code, name, semester, department]):
             messages.error(request, "All required fields must be filled.")
         elif Course.objects.filter(code=code).exists():
             messages.error(request, f"Course with code {code} already exists.")
         else:
             try:
+                # Extract numeric semester value (handles formats like "Sem 3" or "3")
                 semester_num = int(re.search(r'\d+', str(semester)).group()) if not str(semester).isdigit() else int(semester)
                 faculty = User.objects.get(pk=faculty_id) if faculty_id else None
+
                 course = Course.objects.create(
                     code=code,
                     name=name,
@@ -39,7 +59,8 @@ def admin_courses(request):
                     is_active=(status == 'active'),
                     faculty=faculty
                 )
-                
+
+                # Notify the assigned faculty
                 if faculty:
                     create_notification(
                         user=faculty,
@@ -48,13 +69,16 @@ def admin_courses(request):
                         link="/dashboard/faculty/courses/",
                         notification_type='system'
                     )
-                    
+
                 messages.success(request, f"Course {code} added successfully.")
             except Exception as e:
                 messages.error(request, f"Error creating course: {str(e)}")
         return redirect('dashboard:admin_courses')
+
+    # GET: List courses (toggle archived via query param)
     show_archived = request.GET.get('show_archived', 'false') == 'true'
     courses = Course.objects.select_related('faculty').filter(is_archived=show_archived)
+
     context = {
         'courses': courses,
         'departments': DEPARTMENTS,
@@ -64,14 +88,21 @@ def admin_courses(request):
     }
     return render(request, 'dashboard/admin/courses.html', context)
 
+
+# =============================================================================
+# Edit Course
+# =============================================================================
+
 @login_required
 def admin_course_edit(request, pk):
+    """
+    Updates a course's details. Notifies new faculty if the faculty assignment changes.
+    """
     if request.user.role != 'admin':
         return redirect('home')
-    
-    User = get_user_model()
+
     course = get_object_or_404(Course, pk=pk)
-    
+
     if request.method == 'POST':
         code = request.POST.get('code')
         name = request.POST.get('name')
@@ -79,7 +110,7 @@ def admin_course_edit(request, pk):
         department = request.POST.get('department')
         status = request.POST.get('status', 'active')
         faculty_id = request.POST.get('faculty_id')
-        
+
         if not all([code, name, semester, department]):
             messages.error(request, "All required fields must be filled.")
         elif Course.objects.filter(code=code).exclude(pk=pk).exists():
@@ -92,7 +123,8 @@ def admin_course_edit(request, pk):
                 course.semester = semester_num
                 course.department = department
                 course.is_active = (status == 'active')
-                # Notify if faculty changed
+
+                # Notify new faculty if the assignment changed
                 if faculty_id and str(course.faculty_id) != str(faculty_id):
                     new_faculty = User.objects.get(pk=faculty_id)
                     create_notification(
@@ -102,34 +134,46 @@ def admin_course_edit(request, pk):
                         link="/dashboard/faculty/courses/",
                         notification_type='system'
                     )
-                
+
                 course.faculty = User.objects.get(pk=faculty_id) if faculty_id else None
                 course.save()
-                
+
                 messages.success(request, f"Course {code} updated successfully.")
             except Exception as e:
                 messages.error(request, f"Error updating course: {str(e)}")
-                
+
     return redirect('dashboard:admin_courses')
+
+
+# =============================================================================
+# Delete Course
+# =============================================================================
 
 @login_required
 def admin_course_delete(request, pk):
+    """Permanently deletes a course and all related data (assignments, submissions)."""
     if request.user.role != 'admin':
         return redirect('home')
-    
+
     course = get_object_or_404(Course, pk=pk)
-    
+
     if request.method == 'POST':
         code = course.code
         course.delete()
         messages.success(request, f"Course {code} deleted successfully.")
     return redirect('dashboard:admin_courses')
 
+
+# =============================================================================
+# Archive / Unarchive Course
+# =============================================================================
+
 @login_required
 def admin_course_archive(request, pk):
+    """Toggles a course's archive status based on the 'action' POST param."""
     if request.user.role != 'admin':
         return redirect('home')
-    
+
     course = get_object_or_404(Course, pk=pk)
     if request.method == 'POST':
         action = request.POST.get('action', 'archive')
@@ -140,6 +184,5 @@ def admin_course_archive(request, pk):
             course.is_archived = True
             messages.success(request, f"Course {course.code} archived successfully.")
         course.save()
-        
-    return redirect(request.META.get('HTTP_REFERER', 'dashboard:admin_courses'))
 
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard:admin_courses'))

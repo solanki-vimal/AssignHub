@@ -1,9 +1,23 @@
+/**
+ * student_assignment_detail.js — Student Assignment Detail Page
+ *
+ * Shows a visual list of selected files before form submission.
+ * Displays file names and sizes in styled cards with Lucide icons.
+ */
+
+
+/**
+ * Updates the selected file preview list when files are chosen.
+ * Shows each file's name and size (in MB) in a styled card.
+ *
+ * @param {HTMLInputElement} input - The file input element
+ */
 function updateFileList(input) {
     const list = document.getElementById('selected-files');
     if (!list) return;
-    
+
     list.innerHTML = '';
-    
+
     if (input.files.length > 0) {
         list.classList.remove('hidden');
         Array.from(input.files).forEach(file => {
@@ -16,6 +30,7 @@ function updateFileList(input) {
                 </div>
             `;
         });
+        // Re-render Lucide icons for the newly added file icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
@@ -24,5 +39,5 @@ function updateFileList(input) {
     }
 }
 
-// Make globally available for inline onchange attribute
+// Expose globally for inline onchange="updateFileList(this)" in template
 window.updateFileList = updateFileList;

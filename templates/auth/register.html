@@ -6,7 +6,7 @@
 {% block content %}
 <div class="mb-8">
     <h2 class="text-3xl font-bold text-slate-900 mb-2">Create Account</h2>
-    <p class="text-slate-600">Sign up to get started with AssignHub</p>
+    <p class="text-slate-600">Sign up to get started as a Student or Faculty member.</p>
 </div>
 
 {% if messages %}
@@ -15,52 +15,46 @@
     <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
         {{ message }}
     </div>
-{% endfor %}
+    {% endfor %}
 </div>
 {% endif %}
 
-<form method="POST" action="{% url 'accounts:register' %}" class="space-y-5">
+<form method="POST" action="{% url 'accounts:register' %}" class="space-y-5" id="registration-form">
     {% csrf_token %}
     
-    <!-- Hidden Fields from ModelForm -->
+    <!-- Hidden Fields -->
     {{ form.role }}
     {{ form.department }}
 
-    <!-- Role Selection (Visual) -->
-    <div class="mb-6">
-        <label class="text-sm font-medium text-slate-700 mb-3 block">Select Your Role</label>
-        <div class="grid grid-cols-3 gap-3">
-            <label class="cursor-pointer">
-                <input type="radio" name="role_selector" value="student" class="hidden role-radio" checked onchange="updateRoleFields('student')">
-                <div class="role-card p-4 rounded-xl border-2 transition-all border-teal-500 bg-teal-50/30 h-full text-center" id="card-student">
-                    <div class="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors">
-                        <i data-lucide="graduation-cap" class="w-5 h-5 text-teal-600"></i>
+    <!-- Role Selection (Optimized to Student/Faculty only) -->
+    <div class="mb-8">
+        <label class="text-sm font-medium text-slate-700 mb-3 block">Are you a Student or Faculty?</label>
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Student Option -->
+            <label class="cursor-pointer group">
+                <input type="radio" name="role_selector" value="student" class="hidden peer" checked onchange="handleRoleSwitch('student')">
+                <div class="p-4 rounded-xl border-2 transition-all bg-white border-slate-200 peer-checked:border-teal-500 peer-checked:bg-teal-50/30 group-hover:border-slate-300 peer-checked:group-hover:border-teal-500 text-center h-full">
+                    <div class="w-12 h-12 bg-slate-100 peer-checked:bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-3 transition-colors">
+                        <i data-lucide="graduation-cap" class="w-6 h-6 text-slate-500 peer-checked:text-teal-600"></i>
                     </div>
-                    <span class="text-sm font-medium text-teal-700">Student</span>
+                    <span class="text-sm font-semibold text-slate-600 peer-checked:text-teal-700 block">Student</span>
                 </div>
             </label>
-            <label class="cursor-pointer">
-                <input type="radio" name="role_selector" value="faculty" class="hidden role-radio" onchange="updateRoleFields('faculty')">
-                <div class="role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center" id="card-faculty">
-                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors">
-                        <i data-lucide="users" class="w-5 h-5 text-slate-500"></i>
+
+            <!-- Faculty Option -->
+            <label class="cursor-pointer group">
+                <input type="radio" name="role_selector" value="faculty" class="hidden peer" onchange="handleRoleSwitch('faculty')">
+                <div class="p-4 rounded-xl border-2 transition-all bg-white border-slate-200 peer-checked:border-teal-500 peer-checked:bg-teal-50/30 group-hover:border-slate-300 peer-checked:group-hover:border-teal-500 text-center h-full">
+                    <div class="w-12 h-12 bg-slate-100 peer-checked:bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-3 transition-colors">
+                        <i data-lucide="users" class="w-6 h-6 text-slate-500 peer-checked:text-teal-600"></i>
                     </div>
-                    <span class="text-sm font-medium text-slate-600">Faculty</span>
-                </div>
-            </label>
-            <label class="cursor-pointer">
-                <input type="radio" name="role_selector" value="admin" class="hidden role-radio" onchange="updateRoleFields('admin')">
-                <div class="role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center" id="card-admin">
-                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors">
-                        <i data-lucide="shield" class="w-5 h-5 text-slate-500"></i>
-                    </div>
-                    <span class="text-sm font-medium text-slate-600">Admin</span>
+                    <span class="text-sm font-semibold text-slate-600 peer-checked:text-teal-700 block">Faculty</span>
                 </div>
             </label>
         </div>
     </div>
 
-    <!-- Common Fields -->
+    <!-- Common Profile Fields -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
             <label class="text-sm font-medium text-slate-700">Full Name</label>
@@ -81,28 +75,30 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
             <label class="text-sm font-medium text-slate-700">Contact Number</label>
-            {{ form.contact_no }}
+            <div class="mt-1.5">{{ form.contact_no }}</div>
         </div>
         <div>
             <label class="text-sm font-medium text-slate-700">Department</label>
-            {{ form.department_choice }}
+            <div class="mt-1.5">{{ form.department_choice }}</div>
         </div>
     </div>
 
-    <!-- Role-Specific Fields (Toggled by JS) -->
-    <div id="student-only-fields" class="grid grid-cols-1 gap-5">
+    <!-- Conditional Fields -->
+    <div id="student-only-fields" class="space-y-4">
         <div>
             <label class="text-sm font-medium text-slate-700">Enrollment Number</label>
-            {{ form.enrollment_no }}
+            <div class="mt-1.5">{{ form.enrollment_no }}</div>
         </div>
     </div>
 
     <div id="faculty-only-fields" class="hidden">
-        <label class="text-sm font-medium text-slate-700">Faculty ID</label>
-        {{ form.faculty_id }}
+        <div>
+            <label class="text-sm font-medium text-slate-700">Faculty ID</label>
+            <div class="mt-1.5">{{ form.faculty_id }}</div>
+        </div>
     </div>
 
-    <!-- Passwords -->
+    <!-- Security Fields -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
             <label class="text-sm font-medium text-slate-700">Password</label>
@@ -126,61 +122,16 @@
         </div>
     </div>
 
-    <button type="submit" class="w-full py-5 bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white text-base rounded-xl shadow-lg shadow-teal-500/25 transition-all font-semibold">
-        Create Account
+    <button type="submit" class="w-full py-5 bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white text-base rounded-xl shadow-lg shadow-teal-500/25 transition-all font-semibold flex items-center justify-center gap-2">
+        <span>Create Account</span>
+        <i data-lucide="arrow-right" class="w-5 h-5"></i>
     </button>
 </form>
 
-<p class="mt-6 text-center text-slate-600">
-    <span>Already have an account?</span>
-    <a href="{% url 'accounts:login' %}" class="text-teal-600 hover:text-teal-700 font-semibold ml-1">
-        Sign In
-    </a>
+<p class="mt-8 text-center text-slate-600">
+    Already have an account? 
+    <a href="{% url 'accounts:login' %}" class="text-teal-600 hover:text-teal-700 font-bold ml-1 transition-colors">Sign In</a>
 </p>
 
-<script>
-function updateRoleFields(role) {
-    // Update hidden role field
-    document.querySelector('input[name="role"]').value = role;
-    
-    // Toggle field visibility
-    const studentFields = document.getElementById('student-only-fields');
-    const facultyFields = document.getElementById('faculty-only-fields');
-    
-    if (role === 'student') {
-        studentFields.classList.remove('hidden');
-        facultyFields.classList.add('hidden');
-    } else if (role === 'faculty') {
-        studentFields.classList.add('hidden');
-        facultyFields.classList.remove('hidden');
-    } else {
-        studentFields.classList.add('hidden');
-        facultyFields.classList.add('hidden');
-    }
-
-    // Update Card UI
-    ['student', 'faculty', 'admin'].forEach(r => {
-        const card = document.getElementById('card-' + r);
-        const icon = card.querySelector('.icon-svg');
-        const text = card.querySelector('.label-text');
-        
-        if (r === role) {
-            card.className = "role-card p-4 rounded-xl border-2 transition-all border-teal-500 bg-teal-50/30 h-full text-center";
-            card.querySelector('div').className = "w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors";
-            card.querySelector('i').className = "w-5 h-5 text-teal-600";
-            card.querySelector('span').className = "text-sm font-medium text-teal-700";
-        } else {
-            card.className = "role-card p-4 rounded-xl border-2 transition-all border-slate-200 bg-white hover:border-slate-300 h-full text-center";
-            card.querySelector('div').className = "w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-2 transition-colors";
-            card.querySelector('i').className = "w-5 h-5 text-slate-400";
-            card.querySelector('span').className = "text-sm font-medium text-slate-600";
-        }
-    });
-}
-
-// Set initial role on load
-window.addEventListener('load', () => {
-    updateRoleFields('student');
-});
-</script>
+<script src="{% static 'js/auth.js' %}"></script>
 {% endblock %}
