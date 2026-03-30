@@ -1,12 +1,12 @@
 {% extends 'layouts/base_admin.html' %}
-
+{% load static %}
 {% block title %}Dashboard{% endblock %}
 
 {% block header_title %}Admin Dashboard{% endblock %}
 
 {% block extra_head %}
 <!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/chart.js' %}"></script>
 {% endblock %}
 
 {% block content %}
